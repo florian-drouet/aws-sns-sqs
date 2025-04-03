@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # LocalStack service
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566" # LocalStack gateway
+      - "4575:4575" # SNS service
+      - "4576:4576" # SQS service
+    environment:
+      - SERVICES=sns,sqs
+      - DEBUG=1
+      - DEFAULT_REGION=eu-west-3
+    volumes:
+      - ./localstack:/var/lib/localstack
+    networks:
+      - localnet
+
+  # Postgres database service
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - localnet
+
+networks:
+  localnet:
+    driver: bridge
+
+volumes:
+  postgres_data:
