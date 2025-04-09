@@ -6,12 +6,13 @@ from aws_connection import AWSConnection
 from config import AWS_ARN_ROLE_CONSUMER, SESSION_NAME, logger
 
 
-def get_connection_aws(client: str, role: str=None, session_name:str="test_consumer_tc_live"):
+def get_connection_aws(client: str, role: str, session_name:str):
     """
     Establish a connection to AWS services.
     """
+    print(f"role: {role}")
     con = AWSConnection(
-        role=AWS_ARN_ROLE_CONSUMER,
+        role=role,
         session_name=SESSION_NAME,
     )
     return con.get_client(client)
