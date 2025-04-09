@@ -3,14 +3,13 @@ import json
 from botocore.exceptions import ClientError
 
 from aws_connection import AWSConnection
-from config import AWS_ARN_ROLE_CONSUMER, SESSION_NAME, logger
+from config import SESSION_NAME, logger
 
 
 def get_connection_aws(client: str, role: str, session_name:str):
     """
     Establish a connection to AWS services.
     """
-    print(f"role: {role}")
     con = AWSConnection(
         role=role,
         session_name=SESSION_NAME,

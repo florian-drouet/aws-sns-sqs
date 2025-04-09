@@ -1,6 +1,11 @@
 import time
 
-from config import AWS_ARN_ROLE_CONSUMER, SESSION_NAME, TOPIC_NAME, TOPIC_ARN, QUEUE_NAME, ENV
+from config import (
+    AWS_ARN_ROLE_CONSUMER,
+    ENV,
+    SESSION_NAME,
+    TOPIC_ARN,
+)
 from utils import (
     create_queue,
     create_topic,
@@ -8,7 +13,6 @@ from utils import (
     get_queue_arn,
     get_queue_url,
     subscribe_queue_to_topic,
-    get_topic_arn,
 )
 
 
