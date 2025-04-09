@@ -41,16 +41,3 @@ def initialize_aws_setup(role:str, session_name:str, topic_name:str, queue_name:
         time.sleep(1)  # Wait for the queue to be created
         subscribe_queue_to_topic(sns_client, sqs_client, topic_arn, queue_arn)
     return sns_client, sqs_client, topic_arn, queue_url
-
-def initialize_postgres_table(postgres_client):
-    """
-    Initialize the PostgreSQL table.
-    """
-    postgres_client.create_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name, columns=postgres_client.columns)
-
-
-def delete_postgres_table(postgres_client):
-    """
-    Delete the PostgreSQL table.
-    """
-    postgres_client.delete_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name)

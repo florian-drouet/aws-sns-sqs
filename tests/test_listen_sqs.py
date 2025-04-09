@@ -7,7 +7,7 @@ from config import (
     POSTGRES_URI,
 )
 from scripts.message import Message
-from setup import delete_postgres_table, initialize_aws_setup, initialize_postgres_table
+from setup import initialize_aws_setup
 from utils import (
     receive_message_from_queue,
     send_message_to_topic,
@@ -23,8 +23,8 @@ def test_listen_sqs():
     sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=session_name, topic_name=topic_name, queue_name=queue_name)
 
     postgres_client = Message(db_uri=POSTGRES_URI)
-    delete_postgres_table(postgres_client=postgres_client)  # Clean up the table if it exists
-    initialize_postgres_table(postgres_client=postgres_client)
+    postgres_client.delete_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name) # Clean up the table if it exists
+    postgres_client.create_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name, columns=postgres_client.columns)
 
     def producer():
         for i in range(NUM_MESSAGES):

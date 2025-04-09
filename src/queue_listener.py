@@ -11,11 +11,9 @@ from config import (
 )
 from scripts.message import Message
 from setup import (
-    delete_postgres_table,
     get_connection_aws,
     get_queue_url,
     initialize_aws_setup,
-    initialize_postgres_table,
 )
 from utils import receive_message_from_queue
 
@@ -25,8 +23,8 @@ def initalize_consumer():
     Initialize the consumer by setting up the AWS connection and PostgreSQL table.
     """
     postgres_client = Message(db_uri=POSTGRES_URI)
-    delete_postgres_table(postgres_client=postgres_client)  # Clean up the table if it exists
-    initialize_postgres_table(postgres_client=postgres_client)
+    postgres_client.delete_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name) # Clean up the table if it exists
+    postgres_client.create_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name, columns=postgres_client.columns)
 
     _, sqs_client, _, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
     return postgres_client, sqs_client, queue_url
