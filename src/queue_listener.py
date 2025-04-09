@@ -34,11 +34,6 @@ def consumer(postgres_client, sqs_client, queue_url):
 
 if __name__ == "__main__":
 
-    session_name = "test_producer_consumer"
-    topic_name = "topic_producer"
-    queue_name = "topic_consumer"
-    role=AWS_ARN_ROLE_CONSUMER
-
     postgres_client = Message(db_uri=POSTGRES_URI)
 
     _, sqs_client, _, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
