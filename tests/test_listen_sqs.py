@@ -1,16 +1,28 @@
-from utils import get_topic_arn, send_message_to_topic, get_connection_aws, receive_message_from_queue, get_queue_url
-import pytest
 import random
 import threading
 import time
-from setup import initialize_aws_setup, initialize_postgres_table, delete_postgres_table
+
+from config import (
+    AWS_ARN_ROLE_CONSUMER,
+    POSTGRES_URI,
+    QUEUE_NAME,
+    SESSION_NAME,
+    TOPIC_NAME,
+)
 from scripts.message import Message
-from config import logger, AWS_ARN_ROLE_CONSUMER, POSTGRES_URI, SESSION_NAME, TOPIC_NAME, QUEUE_NAME
+from setup import delete_postgres_table, initialize_aws_setup, initialize_postgres_table
+from utils import (
+    get_connection_aws,
+    get_queue_url,
+    get_topic_arn,
+    receive_message_from_queue,
+    send_message_to_topic,
+)
 
 NUM_MESSAGES = 20
 
 def test_listen_sqs():
-    
+
     initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
 
     sns_client = get_connection_aws(client="sns", role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME)
@@ -22,7 +34,7 @@ def test_listen_sqs():
     postgres_client = Message(db_uri=POSTGRES_URI)
     delete_postgres_table(postgres_client=postgres_client)  # Clean up the table if it exists
     initialize_postgres_table(postgres_client=postgres_client)
-    
+
     def producer():
         for i in range(NUM_MESSAGES):
             send_message_to_topic(
@@ -37,7 +49,7 @@ def test_listen_sqs():
     def consumer():
         received = 0
         attempts = 0
-        
+
         while received < NUM_MESSAGES and attempts < 50:
             messages = receive_message_from_queue(
                 postgres_client=postgres_client,
@@ -50,7 +62,7 @@ def test_listen_sqs():
                 received += 1
             attempts += 1
             time.sleep(1)  # polling interval
-    
+
     # Run producer and consumer in parallel
     sender_thread = threading.Thread(target=producer)
     receiver_thread = threading.Thread(target=consumer)

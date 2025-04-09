@@ -1,7 +1,7 @@
 import psycopg2
-import logging
 
 from config import logger
+
 
 class PostgresClient:
     def __init__(self, db_uri):
@@ -151,7 +151,7 @@ class PostgresClient:
         except Exception as e:
             logger.error(f"Error fetching data from '{table_name}': {e}")
             raise
-    
+
     def delete_table(self, schema_name="public", table_name="users"):
         """
         Delete the PostgreSQL table.
@@ -164,7 +164,7 @@ class PostgresClient:
         except Exception as e:
             logger.error(f"Error deleting table '{schema_name}.{table_name}': {e}")
             raise
-    
+
     def count_elements(self, schema_name="public", table_name="users"):
         """
         Count the number of elements in the PostgreSQL table.

@@ -1,10 +1,13 @@
-from aws_connection import AWSConnection
-from utils import create_topic, create_queue, get_queue_arn, subscribe_queue_to_topic, send_message_to_topic, get_connection_aws
-from config import logger, AWS_ARN_ROLE_CONSUMER, POSTGRES_URI, SESSION_NAME, TOPIC_NAME, QUEUE_NAME
 import time
 
-from scripts.postgres import PostgresClient
-from scripts.message import Message
+from config import AWS_ARN_ROLE_CONSUMER, SESSION_NAME
+from utils import (
+    create_queue,
+    create_topic,
+    get_connection_aws,
+    get_queue_arn,
+    subscribe_queue_to_topic,
+)
 
 
 def initialize_aws_setup(role:str, session_name:str, topic_name:str, queue_name:str):
@@ -43,6 +46,6 @@ def delete_postgres_table(postgres_client):
 if __name__ == "__main__":
     # Initialize AWS setup
     initialize_aws_setup()
-    
+
     # Initialize PostgreSQL table
     initialize_postgres_table()

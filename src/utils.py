@@ -1,12 +1,9 @@
-from botocore.exceptions import ClientError
-from aws_connection import AWSConnection
-
-from config import logger, AWS_ARN_ROLE_CONSUMER, POSTGRES_URI, SESSION_NAME, TOPIC_NAME, QUEUE_NAME, POLLING_INTERVAL
-import time
 import json
-import datetime
 
-from scripts.message import Message
+from botocore.exceptions import ClientError
+
+from aws_connection import AWSConnection
+from config import AWS_ARN_ROLE_CONSUMER, SESSION_NAME, logger
 
 
 def get_connection_aws(client: str, role: str=None, session_name:str="test_consumer_tc_live"):
@@ -41,12 +38,12 @@ def get_topic_arn(sns_client, topic_name):
         # List all SNS topics
         response = sns_client.list_topics()
         topics = response.get('Topics', [])
-        
+
         # Find the topic ARN by name
         for topic in topics:
             if topic['TopicArn'].endswith(topic_name):
                 return topic['TopicArn']
-        
+
         logger.error(f"Topic '{topic_name}' not found.")
         return None
     except ClientError as e:
@@ -76,7 +73,7 @@ def get_queue_arn(sqs_client, queue_name):
         # List all SQS queues
         response = sqs_client.list_queues()
         queues = response.get('QueueUrls', [])
-        
+
         # Find the queue URL by name
         for queue in queues:
             if queue.endswith(queue_name):
@@ -84,7 +81,7 @@ def get_queue_arn(sqs_client, queue_name):
                 queue_arn = queue_arn['Attributes']['QueueArn']
                 logger.info(f"Queue '{queue_name}' found. URL: {queue}, ARN: {queue_arn}")
                 return queue_arn
-        
+
         logger.error(f"Queue '{queue_name}' not found.")
         return None
     except ClientError as e:
@@ -100,13 +97,13 @@ def get_queue_url(sqs_client, queue_name):
         # List all SQS queues
         response = sqs_client.list_queues()
         queues = response.get('QueueUrls', [])
-        
+
         # Find the queue URL by name
         for queue in queues:
             if queue.endswith(queue_name):
                 logger.info(f"Queue '{queue_name}' found. URL: {queue}")
                 return queue
-        
+
         logger.error(f"Queue '{queue_name}' not found.")
         return None
     except ClientError as e:
@@ -125,7 +122,7 @@ def subscribe_queue_to_topic(sns_client, sqs_client, topic_arn, queue_arn):
             Protocol='sqs',
             Endpoint=queue_arn,
         )
-        
+
         subscription_arn = response['SubscriptionArn']
         logger.info(f"Subscribed queue to topic. Subscription ARN: {subscription_arn}")
         return subscription_arn
@@ -143,7 +140,7 @@ def send_message_to_topic(sns_client, topic_arn, message_body, subject=None, mes
             Subject=subject,  # Optional subject
             MessageAttributes=message_attributes or {}  # If no attributes, use empty dict
         )
-        
+
         logger.info(f"Message sent to Topic. Message ID: {response['MessageId']}")
         return response
     except ClientError as e:
@@ -163,12 +160,12 @@ def receive_message_from_queue(postgres_client, table_name, sqs_client, queue_ur
             VisibilityTimeout=30,  # Message visibility timeout
             MessageAttributeNames=['All']  # Retrieve all message attributes
         )
-        
+
         messages = response.get('Messages', [])
         if not messages:
             logger.info("No messages received.")
             return None
-        
+
         for message in messages:
             message_body = json.loads(message['Body'])
             logger.info(f"Received message: {message_body.get('MessageId')}")
@@ -190,7 +187,7 @@ def delete_message_from_queue(sqs_client, queue_url, message):
             QueueUrl=queue_url,
             ReceiptHandle=message['ReceiptHandle']
         )
-        
+
         logger.info(f"Deleted message from queue. Receipt Handle: {message['ReceiptHandle']}")
         return response
     except ClientError as e:

@@ -1,5 +1,6 @@
-from scripts.postgres import PostgresClient
 import datetime
+
+from scripts.postgres import PostgresClient
 
 
 class Message(PostgresClient):

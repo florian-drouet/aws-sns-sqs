@@ -1,7 +1,7 @@
-from loguru import logger
-import sys
 import os
+
 from dotenv import load_dotenv
+from loguru import logger
 
 DEBUG = int(os.getenv("DEBUG"))
 load_dotenv(override=DEBUG)  # take environment variables from .env.

@@ -1,7 +1,9 @@
-from utils import get_topic_arn, send_message_to_topic, get_connection_aws
-from setup import initialize_aws_setup
 import pytest
-from config import logger, AWS_ARN_ROLE_CONSUMER, POSTGRES_URI, SESSION_NAME, TOPIC_NAME, QUEUE_NAME
+
+from config import AWS_ARN_ROLE_CONSUMER, QUEUE_NAME, SESSION_NAME, TOPIC_NAME
+from setup import initialize_aws_setup
+from utils import get_connection_aws, get_topic_arn, send_message_to_topic
+
 
 @pytest.mark.parametrize(
     "topic_name, message_body, subject, message_attributes",
@@ -32,7 +34,7 @@ from config import logger, AWS_ARN_ROLE_CONSUMER, POSTGRES_URI, SESSION_NAME, TO
     ]
 )
 def test_sns_response(topic_name, message_body, subject, message_attributes):
-    
+
     initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
 
     sns_client = get_connection_aws(client="sns", role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME)

@@ -1,10 +1,17 @@
-from aws_connection import AWSConnection
-from utils import get_topic_arn, create_queue, subscribe_queue_to_topic, send_message_to_topic, get_connection_aws
-from setup import initialize_aws_setup, initialize_postgres_table
-from config import logger, AWS_ARN_ROLE_CONSUMER, POSTGRES_URI, SESSION_NAME, TOPIC_NAME, QUEUE_NAME
-from scripts.message import Message
 import random
 import time
+
+from config import (
+    AWS_ARN_ROLE_CONSUMER,
+    POSTGRES_URI,
+    QUEUE_NAME,
+    SESSION_NAME,
+    TOPIC_NAME,
+    logger,
+)
+from scripts.message import Message
+from setup import initialize_aws_setup, initialize_postgres_table
+from utils import send_message_to_topic
 
 
 def producer(sns_client, topic_arn):
@@ -27,7 +34,7 @@ def producer(sns_client, topic_arn):
         logger.error(f"Error sending message to topic: {e}")
 
 if __name__ == "__main__":
-    
+
     postgres_client = Message(db_uri=POSTGRES_URI)
 
     sns_client, _, topic_arn, _ = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
