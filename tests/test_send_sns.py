@@ -1,44 +1,27 @@
 import pytest
 
-from config import AWS_ARN_ROLE_CONSUMER, QUEUE_NAME, SESSION_NAME, TOPIC_NAME
+from config import AWS_ARN_ROLE_CONSUMER
 from setup import initialize_aws_setup
 from utils import get_connection_aws, get_topic_arn, send_message_to_topic
 
 
 @pytest.mark.parametrize(
-    "topic_name, message_body, subject, message_attributes",
+    "message_body, subject, message_attributes",
     [
-        (
-            "topic_test_1_1",
-            "Test message",
-            "Test Subject",
-            {
-                'AttributeKey': {
-                    'DataType': 'String',
-                    'StringValue': 'AttributeValue'
-                }
-            }
-        ),
-        (
-            "topic_test_1_2",
-            "Another message",
-            "Another Subject",
-            {
-                'AnotherKey': {
-                    'DataType': 'String',
-                    'StringValue': 'AnotherValue'
-                }
-            }
-        ),
-        # Add more test cases here if needed
+        ("Test message 1", "Test Subject 1", {}),
+        ("Test message 2", "Test Subject 2", {"Attribute1": {"DataType": "String", "StringValue": "Value1"}}),
+        ("Test message 3", "Test Subject 3", {"Attribute2": {"DataType": "Number", "StringValue": "123"}}),
     ]
 )
-def test_sns_response(topic_name, message_body, subject, message_attributes):
+def test_sns_response(message_body, subject, message_attributes):
+    session_name = "test_session_producer"
+    topic_name = "test_topic_producer"
+    queue_name = "test_queue_producer"
 
-    initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
+    initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=session_name, topic_name=topic_name, queue_name=queue_name)
 
-    sns_client = get_connection_aws(client="sns", role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME)
-    topic_arn = get_topic_arn(sns_client=sns_client, topic_name=TOPIC_NAME)
+    sns_client = get_connection_aws(client="sns", role=AWS_ARN_ROLE_CONSUMER, session_name=session_name)
+    topic_arn = get_topic_arn(sns_client=sns_client, topic_name=topic_name)
 
     response = send_message_to_topic(
         sns_client=sns_client,

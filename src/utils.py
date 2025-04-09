@@ -3,7 +3,7 @@ import json
 from botocore.exceptions import ClientError
 
 from aws_connection import AWSConnection
-from config import SESSION_NAME, logger
+from config import logger
 
 
 def get_connection_aws(client: str, role: str, session_name:str):
@@ -12,7 +12,7 @@ def get_connection_aws(client: str, role: str, session_name:str):
     """
     con = AWSConnection(
         role=role,
-        session_name=SESSION_NAME,
+        session_name=session_name,
     )
     return con.get_client(client)
 
@@ -67,7 +67,7 @@ def create_queue(sqs_client, queue_name):
 
 def get_queue_arn(sqs_client, queue_name):
     """
-    Get the URL of an SQS queue by its name.
+    Get the ARN of an SQS queue by its name.
     """
     try:
         # List all SQS queues
