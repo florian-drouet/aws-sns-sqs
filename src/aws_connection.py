@@ -139,7 +139,7 @@ class AWSConnection(metaclass=AWSConnectionMeta):
             logger.info(
                 f"No role assumed or in local dev / testing environment, credentials: {self.credentials}"
             )
-            return boto3.resource(service, **self.credentials)
+            return boto3.resource(service, region_name=self.region, **self.credentials)
         else:
             autorefresh_session = self.get_session()
             return autorefresh_session.resource(service_name=service)
@@ -162,7 +162,7 @@ class AWSConnection(metaclass=AWSConnectionMeta):
             logger.info(
                 f"No role assumed or in local dev / testing environment, credentials: {self.credentials}"
             )
-            return boto3.client(service, **self.credentials)
+            return boto3.client(service, region_name=self.region,  **self.credentials)
         else:
             autorefresh_session = self.get_session()
             return autorefresh_session.client(service)
