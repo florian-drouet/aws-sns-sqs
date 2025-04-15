@@ -121,29 +121,6 @@ class AWSConnection(metaclass=AWSConnectionMeta):
         session.set_config_variable(logical_name="region", value=self.region)
         return Session(botocore_session=session)
 
-    def get_resource(self, service) -> boto3.resource:
-        """
-        Get s3 resource object
-        Args:
-            service: aws service to connect to
-        """
-
-        if (self.expired_date is not None) and (
-            datetime.datetime.now(self.utc)
-            > datetime.datetime.fromisoformat(self.expired_date)
-        ):
-            self.__init__(role=self.role, session_name=self.session_name)
-
-        # if no role assumed or in local dev / testing environment return None
-        if self.credentials == {} or os.getenv("LOCALSTACK") == "1":
-            logger.info(
-                f"No role assumed or in local dev / testing environment, credentials: {self.credentials}"
-            )
-            return boto3.resource(service, **self.credentials)
-        else:
-            autorefresh_session = self.get_session()
-            return autorefresh_session.resource(service_name=service)
-
     def get_client(self, service) -> boto3.client:
         """
         Get s3 client object
@@ -162,7 +139,7 @@ class AWSConnection(metaclass=AWSConnectionMeta):
             logger.info(
                 f"No role assumed or in local dev / testing environment, credentials: {self.credentials}"
             )
-            return boto3.client(service, **self.credentials)
+            return boto3.client(service, region_name=self.region,  **self.credentials)
         else:
             autorefresh_session = self.get_session()
             return autorefresh_session.client(service)

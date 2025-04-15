@@ -1,6 +1,21 @@
-version: '3.8'
-
 services:
+  testrunner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    tty: true
+    environment:
+      LOCALSTACK: 1
+      CI_DOCKER: 1
+      ENV: local
+      DEBUG: 1
+      POSTGRES_URI: postgres://admin:password@postgres:5432/mydatabase
+      AWS_ACCESS_KEY_ID: fake
+      AWS_SECRET_ACCESS_KEY: fake
+    depends_on:
+      - localstack
+      - postgres
+
   # LocalStack service
   localstack:
     image: localstack/localstack:latest
@@ -15,8 +30,6 @@ services:
       - DEFAULT_REGION=eu-west-3
     volumes:
       - ./localstack:/var/lib/localstack
-    networks:
-      - localnet
 
   # Postgres database service
   postgres:
@@ -30,12 +43,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - localnet
-
-networks:
-  localnet:
-    driver: bridge
 
 volumes:
   postgres_data:
