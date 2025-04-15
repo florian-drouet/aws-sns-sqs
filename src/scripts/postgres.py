@@ -4,7 +4,7 @@ from config import logger
 
 
 class PostgresClient:
-    def __init__(self, db_uri):
+    def __init__(self, db_uri) -> None:
         """
         Initialize the Postgres client and run initial setup.
         """
@@ -14,7 +14,7 @@ class PostgresClient:
         self.data = None
         self.connect()
 
-    def connect(self):
+    def connect(self) -> None:
         """
         Establish a connection to the PostgreSQL database.
         """
@@ -58,8 +58,8 @@ class PostgresClient:
             check_table_sql = """
                 SELECT EXISTS (
                     SELECT 1
-                    FROM information_schema.tables 
-                    WHERE table_schema = %s 
+                    FROM information_schema.tables
+                    WHERE table_schema = %s
                     AND table_name = %s
                 );
             """
@@ -69,7 +69,7 @@ class PostgresClient:
             logger.error(f"Error checking existence of table '{schema_name}.{table_name}': {e}")
             raise
 
-    def create_schema(self, schema_name="public"):
+    def create_schema(self, schema_name="public") -> None:
         """
         Create a schema in the PostgreSQL database.
         """
@@ -85,7 +85,7 @@ class PostgresClient:
             logger.error(f"Error creating schema '{schema_name}': {e}")
             raise
 
-    def create_table(self, schema_name="public", table_name="users", columns=None):
+    def create_table(self, schema_name="public", table_name="users", columns=None) -> None:
         """
         Create a table in the PostgreSQL database.
         """
@@ -111,7 +111,7 @@ class PostgresClient:
             logger.error(f"Error creating table '{schema_name}.{table_name}': {e}")
             raise
 
-    def insert_data(self, schema_name="public", table_name="users", data=None, columns=None):
+    def insert_data(self, schema_name="public", table_name="users", data=None, columns=None) -> None:
         """
         Insert data into the PostgreSQL table.
         """
@@ -136,7 +136,7 @@ class PostgresClient:
             logger.error(f"Error inserting data into '{schema_name}.{table_name}': {e}")
             raise
 
-    def fetch_data(self, schema_name="public", table_name="users"):
+    def fetch_data(self, schema_name="public", table_name="users") -> None:
         """
         Fetch data from the PostgreSQL table.
         """
@@ -152,7 +152,7 @@ class PostgresClient:
             logger.error(f"Error fetching data from '{table_name}': {e}")
             raise
 
-    def delete_table(self, schema_name="public", table_name="users"):
+    def delete_table(self, schema_name="public", table_name="users") -> None:
         """
         Delete the PostgreSQL table.
         """
@@ -179,7 +179,7 @@ class PostgresClient:
             logger.error(f"Error counting elements in '{schema_name}.{table_name}': {e}")
             raise
 
-    def close(self):
+    def close(self) -> None:
         """
         Close the cursor and connection to the PostgreSQL database.
         """

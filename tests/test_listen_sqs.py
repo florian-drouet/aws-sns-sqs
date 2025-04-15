@@ -18,15 +18,15 @@ session_name = "test_session"
 topic_name = "test_topic"
 queue_name = "test_queue"
 
-def test_listen_sqs():
+def test_listen_sqs() -> None:
 
-    sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=session_name, topic_name=topic_name, queue_name=queue_name)
+    sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=session_name, topic_name=topic_name, topic_arn=None, queue_name=queue_name)
 
     postgres_client = Message(db_uri=POSTGRES_URI)
     postgres_client.delete_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name) # Clean up the table if it exists
     postgres_client.create_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name, columns=postgres_client.columns)
 
-    def producer():
+    def producer() -> None:
         for i in range(NUM_MESSAGES):
             send_message_to_topic(
                 sns_client=sns_client,
@@ -37,7 +37,7 @@ def test_listen_sqs():
             )
             time.sleep(random.randint(1,5))  # simulate small delay between messages
 
-    def consumer():
+    def consumer() -> None:
         received = 0
         attempts = 0
 

@@ -5,7 +5,7 @@ from scripts.postgres import PostgresClient
 
 class Message(PostgresClient):
 
-    def __init__(self, db_uri):
+    def __init__(self, db_uri) -> None:
         super().__init__(db_uri=db_uri)
         self.schema_name = "public"
         self.table_name = "messages"
@@ -15,7 +15,7 @@ class Message(PostgresClient):
             "message": "VARCHAR",
         }
 
-    def handle_message(self, message_body):
+    def handle_message(self, message_body) -> None:
         """
         Handle the message received from SQS.
         """

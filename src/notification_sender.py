@@ -14,7 +14,7 @@ from setup import initialize_aws_setup
 from utils import send_message_to_topic
 
 
-def producer(sns_client, topic_arn):
+def producer(sns_client, topic_arn) -> None:
     try:
         counter = 1
         while counter<20:

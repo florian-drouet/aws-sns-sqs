@@ -10,7 +10,6 @@ services:
       ENV: local
       DEBUG: 1
       POSTGRES_URI: postgres://admin:password@postgres:5432/mydatabase
-      AWS_ARN_ROLE_CONSUMER: "arn:aws:iam::283956190505:role/iam-role-consumer-tc-live"
       AWS_ACCESS_KEY_ID: fake
       AWS_SECRET_ACCESS_KEY: fake
     depends_on:
@@ -26,7 +25,7 @@ services:
       - "4575:4575" # SNS service
       - "4576:4576" # SQS service
     environment:
-      - SERVICES=sns,sqs,sts
+      - SERVICES=sns,sqs
       - DEBUG=1
       - DEFAULT_REGION=eu-west-3
     volumes:

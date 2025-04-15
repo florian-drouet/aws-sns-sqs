@@ -6,6 +6,7 @@ from config import (
     POSTGRES_URI,
     QUEUE_NAME,
     SESSION_NAME,
+    TOPIC_ARN,
     TOPIC_NAME,
     logger,
 )
@@ -18,7 +19,7 @@ from setup import (
 from utils import receive_message_from_queue
 
 
-def initalize_consumer():
+def initalize_consumer(role: str = AWS_ARN_ROLE_CONSUMER, session_name: str = SESSION_NAME, topic_name: str = TOPIC_NAME, topic_arn: str = TOPIC_ARN, queue_name: str = QUEUE_NAME):
     """
     Initialize the consumer by setting up the AWS connection and PostgreSQL table.
     """
@@ -26,10 +27,10 @@ def initalize_consumer():
     postgres_client.delete_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name) # Clean up the table if it exists
     postgres_client.create_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name, columns=postgres_client.columns)
 
-    _, sqs_client, _, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME, topic_name=TOPIC_NAME, queue_name=QUEUE_NAME)
+    _, sqs_client, _, queue_url = initialize_aws_setup(role=role, session_name=session_name, topic_name=topic_name, topic_arn=topic_arn, queue_name=queue_name)
     return postgres_client, sqs_client, queue_url
 
-def consumer():
+def consumer() -> None:
     sqs_client = get_connection_aws(client="sqs", role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME)
     queue_url = get_queue_url(sqs_client=sqs_client, queue_name=QUEUE_NAME)
     postgres_client = Message(db_uri=POSTGRES_URI)
@@ -38,7 +39,7 @@ def consumer():
 
     while is_consumer_running:
         try:
-            messages = receive_message_from_queue(
+            receive_message_from_queue(
                 postgres_client=postgres_client,
                 table_name=postgres_client.table_name,
                 sqs_client=sqs_client,
@@ -52,4 +53,4 @@ def consumer():
             break
 
 if __name__ == "__main__":
-    consumer()
+    initalize_consumer()
