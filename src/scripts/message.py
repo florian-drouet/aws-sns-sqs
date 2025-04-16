@@ -4,7 +4,6 @@ from scripts.postgres import PostgresClient
 
 
 class Message(PostgresClient):
-
     def __init__(self, db_uri) -> None:
         super().__init__(db_uri=db_uri)
         self.schema_name = "public"
@@ -19,7 +18,7 @@ class Message(PostgresClient):
         """
         Handle the message received from SQS.
         """
-        self.data=[
+        self.data = [
             (
                 message_body.get("MessageId"),
                 datetime.datetime.now().isoformat(),

@@ -36,7 +36,6 @@ class AWSConnection(metaclass=AWSConnectionMeta):
         session_name: str = None,
         assume_role_max_duration: int = 3600,
     ) -> None:
-
         self.credentials = self._init_credentials(
             role, session_name, assume_role_max_duration
         )
@@ -48,7 +47,6 @@ class AWSConnection(metaclass=AWSConnectionMeta):
         self.utc = datetime.timezone.utc
 
     def _init_credentials(self, role, session_name, assume_role_max_duration):
-
         self.role = role
         self.session_name = session_name
         self.region = "eu-west-3"
@@ -137,9 +135,10 @@ class AWSConnection(metaclass=AWSConnectionMeta):
         # if no role assumed or in local dev / testing environment return None
         if self.credentials == {} or os.getenv("LOCALSTACK") == "1":
             logger.info(
-                f"No role assumed or in local dev / testing environment, credentials: {self.credentials}"
+                f"No role assumed or in local dev / testing environment, "
+                f"credentials: {self.credentials}"
             )
-            return boto3.client(service, region_name=self.region,  **self.credentials)
+            return boto3.client(service, region_name=self.region, **self.credentials)
         else:
             autorefresh_session = self.get_session()
             return autorefresh_session.client(service)

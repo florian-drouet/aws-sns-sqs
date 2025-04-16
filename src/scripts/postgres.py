@@ -66,7 +66,9 @@ class PostgresClient:
             self.cursor.execute(check_table_sql, (schema_name, table_name))
             return self.cursor.fetchone()[0]
         except Exception as e:
-            logger.error(f"Error checking existence of table '{schema_name}.{table_name}': {e}")
+            logger.error(
+                f"Error checking existence of table '{schema_name}.{table_name}': {e}"
+            )
             raise
 
     def create_schema(self, schema_name="public") -> None:
@@ -85,7 +87,9 @@ class PostgresClient:
             logger.error(f"Error creating schema '{schema_name}': {e}")
             raise
 
-    def create_table(self, schema_name="public", table_name="users", columns=None) -> None:
+    def create_table(
+        self, schema_name="public", table_name="users", columns=None
+    ) -> None:
         """
         Create a table in the PostgreSQL database.
         """
@@ -102,8 +106,13 @@ class PostgresClient:
                 logger.info(f"Table '{schema_name}.{table_name}' already exists.")
                 return
             self.columns = list(columns.keys())
-            column_definitions = ", ".join([f"{col} {dtype}" for col, dtype in columns.items()])
-            create_table_sql = f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name} ({column_definitions});"
+            column_definitions = ", ".join(
+                [f"{col} {dtype}" for col, dtype in columns.items()]
+            )
+            create_table_sql = (
+                f"CREATE TABLE IF NOT EXISTS {schema_name}.{table_name}"
+                f"({column_definitions});"
+            )
             self.cursor.execute(create_table_sql)
             self.connection.commit()
             logger.info(f"Table '{schema_name}.{table_name}' created successfully.")
@@ -111,7 +120,9 @@ class PostgresClient:
             logger.error(f"Error creating table '{schema_name}.{table_name}': {e}")
             raise
 
-    def insert_data(self, schema_name="public", table_name="users", data=None, columns=None) -> None:
+    def insert_data(
+        self, schema_name="public", table_name="users", data=None, columns=None
+    ) -> None:
         """
         Insert data into the PostgreSQL table.
         """
@@ -128,10 +139,15 @@ class PostgresClient:
             columns_str = ", ".join(columns)
             placeholders = ", ".join(["%s"] * len(columns))
 
-            insert_sql = f"INSERT INTO {schema_name}.{table_name} ({columns_str}) VALUES ({placeholders});"
+            insert_sql = (
+                f"INSERT INTO {schema_name}.{table_name}"
+                f"({columns_str}) VALUES ({placeholders});"
+            )
             self.cursor.executemany(insert_sql, self.data)
             self.connection.commit()
-            logger.info(f"Inserted {len(self.data)} rows into '{schema_name}.{table_name}'.")
+            logger.info(
+                f"Inserted {len(self.data)} rows into '{schema_name}.{table_name}'."
+            )
         except Exception as e:
             logger.error(f"Error inserting data into '{schema_name}.{table_name}': {e}")
             raise
@@ -176,7 +192,9 @@ class PostgresClient:
             logger.info(f"Count of elements in '{schema_name}.{table_name}': {count}")
             return count
         except Exception as e:
-            logger.error(f"Error counting elements in '{schema_name}.{table_name}': {e}")
+            logger.error(
+                f"Error counting elements in '{schema_name}.{table_name}': {e}"
+            )
             raise
 
     def close(self) -> None:
