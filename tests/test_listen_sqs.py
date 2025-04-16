@@ -18,13 +18,25 @@ session_name = "test_session"
 topic_name = "test_topic"
 queue_name = "test_queue"
 
-def test_listen_sqs() -> None:
 
-    sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(role=AWS_ARN_ROLE_CONSUMER, session_name=session_name, topic_name=topic_name, topic_arn=None, queue_name=queue_name)
+def test_listen_sqs() -> None:
+    sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(
+        role=AWS_ARN_ROLE_CONSUMER,
+        session_name=session_name,
+        topic_name=topic_name,
+        topic_arn=None,
+        queue_name=queue_name,
+    )
 
     postgres_client = Message(db_uri=POSTGRES_URI)
-    postgres_client.delete_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name) # Clean up the table if it exists
-    postgres_client.create_table(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name, columns=postgres_client.columns)
+    postgres_client.delete_table(
+        schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
+    )  # Clean up the table if it exists
+    postgres_client.create_table(
+        schema_name=postgres_client.schema_name,
+        table_name=postgres_client.table_name,
+        columns=postgres_client.columns,
+    )
 
     def producer() -> None:
         for i in range(NUM_MESSAGES):
@@ -33,9 +45,9 @@ def test_listen_sqs() -> None:
                 topic_arn=topic_arn,
                 message_body=f"Test message {i}",
                 subject=f"Test Subject {i}",
-                message_attributes={}
+                message_attributes={},
             )
-            time.sleep(random.randint(1,5))  # simulate small delay between messages
+            time.sleep(random.randint(1, 5))  # simulate small delay between messages
 
     def consumer() -> None:
         received = 0
@@ -47,7 +59,7 @@ def test_listen_sqs() -> None:
                 table_name=postgres_client.table_name,
                 sqs_client=sqs_client,
                 queue_url=queue_url,
-                columns=postgres_client.columns
+                columns=postgres_client.columns,
             )
             for message in messages:
                 received += 1
@@ -64,5 +76,9 @@ def test_listen_sqs() -> None:
     sender_thread.join()
     receiver_thread.join()
 
-    nb_elements_postgres = postgres_client.count_elements(schema_name=postgres_client.schema_name, table_name=postgres_client.table_name)
-    assert nb_elements_postgres == 20, f"Expected 20 elements in the PostgreSQL table, but found {nb_elements_postgres}."
+    nb_elements = postgres_client.count_elements(
+        schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
+    )
+    assert nb_elements == 20, (
+        f"Expected 20 elements in the PostgreSQL table, but found {nb_elements}."
+    )

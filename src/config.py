@@ -14,11 +14,17 @@ TOPIC_ARN = os.getenv("TOPIC_ARN")
 QUEUE_NAME = os.getenv("QUEUE_NAME")
 
 # ENV & DEBUG
-ENV=os.getenv("ENV")
-DEBUG=int(os.getenv("DEBUG"))
+ENV = os.getenv("ENV")
+DEBUG = int(os.getenv("DEBUG"))
 
 # Configure loguru loggers
-logger.add("logs/aws_connection.log", rotation="10 MB", retention="10 days", level="DEBUG", enqueue=True)
+logger.add(
+    "logs/aws_connection.log",
+    rotation="10 MB",
+    retention="10 days",
+    level="DEBUG",
+    enqueue=True,
+)
 
 # Global Postgres connection string
 POSTGRES_URI = os.getenv("POSTGRES_URI")
