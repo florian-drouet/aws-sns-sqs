@@ -50,7 +50,7 @@ def receive_message_from_queue(
             logger.info(f"Received message: {message_body.get('MessageId')}")
             data = postgres_client.handle_message(message_body)
             postgres_client.insert_data(
-                table_name=table_name, data=data, columns=columns, strategy="update"
+                table_name=table_name, data=data, columns=columns, strategy="skip"
             )
             delete_message_from_queue(sqs_client, queue_url, message)
         return messages
