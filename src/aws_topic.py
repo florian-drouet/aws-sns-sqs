@@ -12,9 +12,6 @@ class Topic(AWSConnection):
         self.logger = logger
 
     def get_account_id(self):
-        """
-        Get the AWS account ID.
-        """
         try:
             account_id = self.sts_client.get_caller_identity()["Account"]
             return account_id
@@ -50,7 +47,6 @@ class Topic(AWSConnection):
             if is_topic:
                 self.logger.info(f"Topic '{self.topic_name}' already exists.")
                 return topic_arn
-            # Create the topic
             response = self.sns_client.create_topic(Name=self.topic_name)
             topic_arn = response["TopicArn"]
             self.logger.info(f"Topic created: {self.topic_name}, ARN: {topic_arn}")
