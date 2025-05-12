@@ -1,19 +1,17 @@
 import time
 
+from aws_queue import Queue
 from config import (
     AWS_ARN_ROLE_CONSUMER,
     POLLING_INTERVAL,
     POSTGRES_URI,
     QUEUE_NAME,
     SESSION_NAME,
-    TOPIC_ARN,
     TOPIC_NAME,
     logger,
 )
 from scripts.message import Message
 from setup import (
-    get_connection_aws,
-    get_queue_url,
     initialize_aws_setup,
 )
 from utils import receive_message_from_queue
@@ -23,7 +21,6 @@ def initalize_consumer(
     role: str = AWS_ARN_ROLE_CONSUMER,
     session_name: str = SESSION_NAME,
     topic_name: str = TOPIC_NAME,
-    topic_arn: str = TOPIC_ARN,
     queue_name: str = QUEUE_NAME,
 ):
     """
@@ -43,17 +40,19 @@ def initalize_consumer(
         role=role,
         session_name=session_name,
         topic_name=topic_name,
-        topic_arn=topic_arn,
         queue_name=queue_name,
     )
     return postgres_client, sqs_client, queue_url
 
 
 def consumer() -> None:
-    sqs_client = get_connection_aws(
-        client="sqs", role=AWS_ARN_ROLE_CONSUMER, session_name=SESSION_NAME
+    queue = Queue(
+        role=AWS_ARN_ROLE_CONSUMER,
+        session_name=SESSION_NAME,
+        queue_name=QUEUE_NAME,
+        logger=logger,
     )
-    queue_url = get_queue_url(sqs_client=sqs_client, queue_name=QUEUE_NAME)
+    queue_url = queue.get_queue_url()
     postgres_client = Message(db_uri=POSTGRES_URI)
 
     is_consumer_running = True
@@ -63,7 +62,7 @@ def consumer() -> None:
             receive_message_from_queue(
                 postgres_client=postgres_client,
                 table_name=postgres_client.table_name,
-                sqs_client=sqs_client,
+                sqs_client=queue.sqs_client,
                 queue_url=queue_url,
                 columns=postgres_client.columns,
             )
@@ -75,4 +74,5 @@ def consumer() -> None:
 
 
 if __name__ == "__main__":
-    initalize_consumer()
+    postgres_client, sqs_client, queue_url = initalize_consumer()
+    consumer()

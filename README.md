@@ -20,6 +20,17 @@ LOCALSTACK=1
 
 POSTGRES_URI = "postgres://admin:password@localhost:5432/mydatabase"
 AWS_ENDPOINT_URL="http://localhost:4566"
+
+QUEUE_NAME="test-queue"
+TOPIC_NAME="test-topic"
 ```
 
 uv run env AWS_ENDPOINT_URL='http://localhost:4566' env ENV=local env LOCALSTACK=1 pytest
+
+This repository works well with localstack but in a production AWS environment you will need to
+add some rights :
+- SQS:CreateQueue
+- SQS:GetQueueAttributes
+- SQS:ListQueue
+- SQS:GetTopicAttributes
+- SNS:CreateTopic
