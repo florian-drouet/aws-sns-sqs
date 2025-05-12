@@ -14,7 +14,7 @@ from setup import initialize_aws_setup
 from utils import send_message_to_topic
 
 
-def initalize_producer(
+def initialize_producer(
     role: str = AWS_ARN_ROLE_CONSUMER,
     session_name: str = SESSION_NAME,
     topic_name: str = TOPIC_NAME,
@@ -62,5 +62,5 @@ def producer(sns_client, topic_arn) -> None:
 
 
 if __name__ == "__main__":
-    postgres_client, sns_client, topic_arn = initalize_producer()
+    postgres_client, sns_client, topic_arn = initialize_producer()
     producer(sns_client=sns_client, topic_arn=topic_arn)

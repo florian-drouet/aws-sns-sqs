@@ -17,7 +17,7 @@ from setup import (
 from utils import receive_message_from_queue
 
 
-def initalize_consumer(
+def initialize_consumer(
     role: str = AWS_ARN_ROLE_CONSUMER,
     session_name: str = SESSION_NAME,
     topic_name: str = TOPIC_NAME,
@@ -74,5 +74,5 @@ def consumer() -> None:
 
 
 if __name__ == "__main__":
-    postgres_client, sqs_client, queue_url = initalize_consumer()
+    postgres_client, sqs_client, queue_url = initialize_consumer()
     consumer()
