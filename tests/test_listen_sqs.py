@@ -24,7 +24,6 @@ def test_listen_sqs() -> None:
         role=AWS_ARN_ROLE_CONSUMER,
         session_name=session_name,
         topic_name=topic_name,
-        topic_arn=None,
         queue_name=queue_name,
     )
 

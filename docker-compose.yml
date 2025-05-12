@@ -25,7 +25,7 @@ services:
       - "4575:4575" # SNS service
       - "4576:4576" # SQS service
     environment:
-      - SERVICES=sns,sqs
+      - SERVICES=sns,sqs,sts
       - DEBUG=1
       - DEFAULT_REGION=eu-west-3
     volumes:

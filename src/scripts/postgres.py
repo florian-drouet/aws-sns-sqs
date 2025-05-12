@@ -161,9 +161,6 @@ class PostgresClient:
             self.cursor.execute(fetch_sql)
             rows = self.cursor.fetchall()
             logger.info(f"Fetched {len(rows)} rows from '{table_name}'.")
-            for row in rows:
-                print(row)
-                pass
         except Exception as e:
             logger.error(f"Error fetching data from '{table_name}': {e}")
             raise

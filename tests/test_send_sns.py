@@ -30,7 +30,6 @@ def test_sns_response(message_body, subject, message_attributes) -> None:
         role=AWS_ARN_ROLE_CONSUMER,
         session_name=session_name,
         topic_name=topic_name,
-        topic_arn=None,
         queue_name=queue_name,
     )
 
