@@ -18,10 +18,11 @@ class Message(PostgresClient):
         """
         Handle the message received from SQS.
         """
-        self.data = [
+        data = [
             (
                 message_body.get("MessageId"),
                 datetime.datetime.now().isoformat(),
                 message_body.get("Message"),
             )
         ]
+        return data

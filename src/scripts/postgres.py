@@ -11,7 +11,6 @@ class PostgresClient:
         self.db_uri = db_uri
         self.connection = None
         self.cursor = None
-        self.data = None
         self.connect()
 
     def connect(self) -> None:
@@ -120,13 +119,38 @@ class PostgresClient:
             logger.error(f"Error creating table '{schema_name}.{table_name}': {e}")
             raise
 
+    @staticmethod
+    def insert_data_strategy(
+        primary_key: str = "id", strategy: str = "skip", columns=None
+    ) -> str:
+        if strategy not in ("skip", "update"):
+            raise ValueError("Invalid strategy. Use 'skip' or 'update'.")
+
+        if strategy == "update" and columns is None:
+            raise ValueError("Columns must be provided for 'update' strategy.")
+
+        if strategy == "skip":
+            sql_statement = f"""ON CONFLICT ({primary_key}) DO NOTHING;"""
+
+        if strategy == "update":
+            set_clause = ", ".join([f"{col} = EXCLUDED.{col}" for col in columns])
+            sql_statement = (
+                f"""ON CONFLICT ({primary_key}) DO UPDATE SET {set_clause};"""
+            )
+        return sql_statement
+
     def insert_data(
-        self, schema_name="public", table_name="users", data=None, columns=None
+        self,
+        schema_name="public",
+        table_name="users",
+        strategy="skip",
+        data=None,
+        columns=None,
     ) -> None:
         """
         Insert data into the PostgreSQL table.
         """
-        if self.data is None:
+        if data is None:
             raise ValueError("Data must be provided to insert into the table.")
 
         if columns is None:
@@ -135,19 +159,21 @@ class PostgresClient:
                 raise ValueError("Columns must be defined before inserting data.")
             columns = self.columns
 
+        insert_sql_statement = self.insert_data_strategy(
+            primary_key="id", strategy=strategy, columns=columns
+        )
         try:
             columns_str = ", ".join(columns)
             placeholders = ", ".join(["%s"] * len(columns))
 
             insert_sql = (
                 f"INSERT INTO {schema_name}.{table_name}"
-                f"({columns_str}) VALUES ({placeholders});"
+                f"({columns_str}) VALUES ({placeholders})"
+                f"{insert_sql_statement}"
             )
-            self.cursor.executemany(insert_sql, self.data)
+            self.cursor.executemany(insert_sql, data)
             self.connection.commit()
-            logger.info(
-                f"Inserted {len(self.data)} rows into '{schema_name}.{table_name}'."
-            )
+            logger.info(f"Inserted {len(data)} rows into '{schema_name}.{table_name}'.")
         except Exception as e:
             logger.error(f"Error inserting data into '{schema_name}.{table_name}': {e}")
             raise
