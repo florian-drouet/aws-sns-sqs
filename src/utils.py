@@ -48,9 +48,9 @@ def receive_message_from_queue(
         for message in messages:
             message_body = json.loads(message["Body"])
             logger.info(f"Received message: {message_body.get('MessageId')}")
-            postgres_client.handle_message(message_body)
+            data = postgres_client.handle_message(message_body)
             postgres_client.insert_data(
-                table_name=table_name, data=postgres_client.data, columns=columns
+                table_name=table_name, data=data, columns=columns, strategy="skip"
             )
             delete_message_from_queue(sqs_client, queue_url, message)
         return messages
