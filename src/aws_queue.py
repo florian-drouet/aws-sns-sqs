@@ -147,8 +147,10 @@ class Queue:
                 f"Queue '{self.queue_name}' found. URL: {queue}, ARN: {queue_arn}"
             )
             return queue_arn
-        except Exception as e:
-            self.logger.error(f"Error getting queue ARN: {e}")
+        except ClientError as e:
+            error_code = e.response["Error"]["Code"]
+            error_message = e.response["Error"]["Message"]
+            self.logger.error(f"ClientError when getting queue ARN: {error_code} - {error_message}")
             return None
 
     def get_queue_url(self):
