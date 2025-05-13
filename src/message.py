@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from scripts.postgres import PostgresClient
 
@@ -8,21 +9,24 @@ class Message(PostgresClient):
         super().__init__(db_uri=db_uri)
         self.schema_name = "public"
         self.table_name = "messages"
+        self.primary_key = "consultation_id"
         self.columns = {
-            "id": "VARCHAR PRIMARY KEY",
-            "created_at": "TIMESTAMP",
-            "message": "VARCHAR",
+            "consultation_id": "VARCHAR PRIMARY KEY",
+            "inserted_at": "TIMESTAMP",
+            "estimated_start_date": "TIMESTAMP",
         }
 
     def handle_message(self, message_body) -> None:
         """
         Handle the message received from SQS.
         """
+        dict_message = json.loads(message_body.get("Message"))
+
         data = [
             (
-                message_body.get("MessageId"),
+                dict_message.get("id"),
                 datetime.datetime.now().isoformat(),
-                message_body.get("Message"),
+                dict_message.get("estimatedStartDate"),
             )
         ]
         return data

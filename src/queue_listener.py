@@ -1,6 +1,5 @@
 import time
 
-from aws_queue import Queue
 from config import (
     AWS_ARN_ROLE_CONSUMER,
     POLLING_INTERVAL,
@@ -10,7 +9,8 @@ from config import (
     TOPIC_NAME,
     logger,
 )
-from scripts.message import Message
+from message import Message
+from scripts.aws_queue import Queue
 from setup import (
     initialize_aws_setup,
 )
@@ -74,5 +74,5 @@ def consumer() -> None:
 
 
 if __name__ == "__main__":
-    postgres_client, sqs_client, queue_url = initialize_consumer()
+    initialize_consumer()
     consumer()
