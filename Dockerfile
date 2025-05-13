@@ -28,3 +28,5 @@ COPY README.md /app/
 
 # Create and sync virtual environment using uv
 RUN uv venv && uv sync
+
+CMD ["uv", "run", "src/queue_listener.py"]

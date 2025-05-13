@@ -4,13 +4,14 @@ from config import logger
 
 
 class PostgresClient:
-    def __init__(self, db_uri) -> None:
+    def __init__(self, db_uri: str, primary_key: str = "id") -> None:
         """
         Initialize the Postgres client and run initial setup.
         """
         self.db_uri = db_uri
         self.connection = None
         self.cursor = None
+        self.primary_key = primary_key
         self.connect()
 
     def connect(self) -> None:
@@ -24,6 +25,16 @@ class PostgresClient:
         except Exception as e:
             logger.error(f"Error connecting to the database: {e}")
             raise
+
+    def execute_query(self, query: str):
+        with self.connection.cursor() as cursor:
+            cursor.execute(query)
+            try:
+                result = cursor.fetchall()
+            except Exception:
+                result = None
+            self.connection.commit()
+            return result
 
     def schema_exists(self, schema_name: str) -> bool:
         """
@@ -160,7 +171,7 @@ class PostgresClient:
             columns = self.columns
 
         insert_sql_statement = self.insert_data_strategy(
-            primary_key="id", strategy=strategy, columns=columns
+            primary_key=self.primary_key, strategy=strategy, columns=columns
         )
         try:
             columns_str = ", ".join(columns)
@@ -202,6 +213,19 @@ class PostgresClient:
             logger.info(f"Table '{schema_name}.{table_name}' deleted successfully.")
         except Exception as e:
             logger.error(f"Error deleting table '{schema_name}.{table_name}': {e}")
+            raise
+
+    def truncate_table(self, schema_name="public", table_name="users") -> None:
+        """
+        Truncate the PostgreSQL table.
+        """
+        try:
+            truncate_sql = f"TRUNCATE TABLE {schema_name}.{table_name};"
+            self.cursor.execute(truncate_sql)
+            self.connection.commit()
+            logger.info(f"Table '{schema_name}.{table_name}' truncated successfully.")
+        except Exception as e:
+            logger.error(f"Error truncating table '{schema_name}.{table_name}': {e}")
             raise
 
     def count_elements(self, schema_name="public", table_name="users"):

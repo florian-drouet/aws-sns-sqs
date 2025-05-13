@@ -1,6 +1,6 @@
-from aws_queue import Queue
-from aws_topic import Topic
 from config import logger
+from scripts.aws_queue import Queue
+from scripts.aws_topic import Topic
 
 
 def initialize_aws_setup(

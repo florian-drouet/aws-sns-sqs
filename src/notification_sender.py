@@ -9,8 +9,8 @@ from config import (
     TOPIC_NAME,
     logger,
 )
-from scripts.message import Message
 from setup import initialize_aws_setup
+from src.message import Message
 from utils import send_message_to_topic
 
 

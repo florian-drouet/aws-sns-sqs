@@ -3,7 +3,7 @@ import time
 
 from botocore.exceptions import ClientError
 
-from aws_connection import AWSConnection
+from scripts.aws_connection import AWSConnection
 
 
 class Queue:
