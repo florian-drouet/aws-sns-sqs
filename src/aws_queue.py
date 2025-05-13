@@ -6,16 +6,19 @@ from botocore.exceptions import ClientError
 from aws_connection import AWSConnection
 
 
-class Queue(AWSConnection):
+class Queue:
     """
     Class to manage AWS SQS queues.
     """
 
     def __init__(self, role: str, session_name: str, queue_name: str, logger=None):
-        super().__init__(role=role, session_name=session_name)
         self.queue_name = queue_name
-        self.sqs_client = self.get_client(service="sqs")
-        self.sns_client = self.get_client(service="sns")
+        self.connection = AWSConnection(
+            role=role,
+            session_name=session_name,
+        )
+        self.sqs_client = self.connection.get_client(service="sqs")
+        self.sns_client = self.connection.get_client(service="sns")
         self.logger = logger
 
     def initialize_queue(self, topic_arn, dead_letter_queue_arn):
@@ -135,22 +138,16 @@ class Queue(AWSConnection):
 
     def get_queue_arn(self):
         try:
-            response = self.sqs_client.list_queues()
-            queues = response.get("QueueUrls", [])
-
-            for queue in queues:
-                if queue.endswith(self.queue_name):
-                    queue_arn = self.sqs_client.get_queue_attributes(
-                        QueueUrl=queue, AttributeNames=["QueueArn"]
-                    )
-                    queue_arn = queue_arn["Attributes"]["QueueArn"]
-                    self.logger.info(
-                        f"Queue '{self.queue_name}' found. URL: {queue}, ARN: {queue_arn}"
-                    )
-                    return queue_arn
-
-            self.logger.error(f"Queue '{self.queue_name}' not found.")
-            return None
+            response = self.sqs_client.list_queues(QueueNamePrefix=self.queue_name)
+            queue = response.get("QueueUrls", [])[0]
+            queue_arn = self.sqs_client.get_queue_attributes(
+                QueueUrl=queue, AttributeNames=["QueueArn"]
+            )
+            queue_arn = queue_arn["Attributes"]["QueueArn"]
+            self.logger.info(
+                f"Queue '{self.queue_name}' found. URL: {queue}, ARN: {queue_arn}"
+            )
+            return queue_arn
         except ClientError as e:
             self.logger.error(f"Error retrieving queue URL: {e}")
             return None
