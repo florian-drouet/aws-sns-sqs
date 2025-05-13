@@ -25,7 +25,12 @@ def initialize_aws_setup(
         queue_name=f"dead_letter_{queue_name}",
         logger=logger,
     )
-    dead_letter_queue_arn = dead_letter_queue.get_queue_arn()
+    dead_letter_queue_url = dead_letter_queue.get_queue_url()
+    if not dead_letter_queue_url:
+        dead_letter_queue.create_queue()
+        dead_letter_queue_arn = dead_letter_queue.get_queue_arn()
+    else:
+        dead_letter_queue_arn = dead_letter_queue.get_queue_arn()
     queue = Queue(
         role=role,
         session_name=session_name,
@@ -38,5 +43,5 @@ def initialize_aws_setup(
             topic_arn=topic_arn,
             dead_letter_queue_arn=dead_letter_queue_arn,
         )
-
+        queue_url = queue.get_queue_url()
     return topic.sns_client, queue.sqs_client, topic_arn, queue_url

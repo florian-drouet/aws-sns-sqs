@@ -3,12 +3,15 @@ from botocore.exceptions import ClientError
 from aws_connection import AWSConnection
 
 
-class Topic(AWSConnection):
+class Topic:
     def __init__(self, role: str, session_name: str, topic_name: str, logger=None):
-        super().__init__(role=role, session_name=session_name)
         self.topic_name = topic_name
-        self.sns_client = self.get_client(service="sns")
-        self.sts_client = self.get_client(service="sts")
+        self.connection = AWSConnection(
+            role=role,
+            session_name=session_name,
+        )
+        self.sns_client = self.connection.get_client(service="sns")
+        self.sts_client = self.connection.get_client(service="sts")
         self.logger = logger
 
     def get_account_id(self):

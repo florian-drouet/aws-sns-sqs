@@ -6,22 +6,24 @@ from botocore.exceptions import ClientError
 from aws_connection import AWSConnection
 
 
-class Queue(AWSConnection):
+class Queue:
     """
     Class to manage AWS SQS queues.
     """
 
     def __init__(self, role: str, session_name: str, queue_name: str, logger=None):
-        super().__init__(role=role, session_name=session_name)
         self.queue_name = queue_name
-        self.sqs_client = self.get_client(service="sqs")
-        self.sns_client = self.get_client(service="sns")
+        self.connection = AWSConnection(
+            role=role,
+            session_name=session_name,
+        )
+        self.sqs_client = self.connection.get_client(service="sqs")
+        self.sns_client = self.connection.get_client(service="sns")
         self.logger = logger
 
     def initialize_queue(self, topic_arn, dead_letter_queue_arn):
         try:
             self.create_queue()
-            time.sleep(1)  # Wait for the queue to be created
             self.subscribe_queue_to_topic(topic_arn=topic_arn)
             self.add_subscription_policy_to_queue(topic_arn=topic_arn)
             self.add_redrive_policy_to_queue(
@@ -34,6 +36,7 @@ class Queue(AWSConnection):
     def create_queue(self):
         try:
             response = self.sqs_client.create_queue(QueueName=self.queue_name)
+            time.sleep(2)  # Wait for the queue to be created
             queue_url = response["QueueUrl"]
             self.logger.info(f"Created queue: {self.queue_name}, URL: {queue_url}")
             return queue_url
@@ -135,24 +138,19 @@ class Queue(AWSConnection):
 
     def get_queue_arn(self):
         try:
-            response = self.sqs_client.list_queues()
-            queues = response.get("QueueUrls", [])
-
-            for queue in queues:
-                if queue.endswith(self.queue_name):
-                    queue_arn = self.sqs_client.get_queue_attributes(
-                        QueueUrl=queue, AttributeNames=["QueueArn"]
-                    )
-                    queue_arn = queue_arn["Attributes"]["QueueArn"]
-                    self.logger.info(
-                        f"Queue '{self.queue_name}' found. URL: {queue}, ARN: {queue_arn}"
-                    )
-                    return queue_arn
-
-            self.logger.error(f"Queue '{self.queue_name}' not found.")
-            return None
+            queue = self.get_queue_url()
+            response = self.sqs_client.get_queue_attributes(
+                QueueUrl=queue, AttributeNames=["QueueArn"]
+            )
+            queue_arn = response["Attributes"]["QueueArn"]
+            self.logger.info(
+                f"Queue '{self.queue_name}' found. URL: {queue}, ARN: {queue_arn}"
+            )
+            return queue_arn
         except ClientError as e:
-            self.logger.error(f"Error retrieving queue URL: {e}")
+            error_code = e.response["Error"]["Code"]
+            error_message = e.response["Error"]["Message"]
+            self.logger.error(f"ClientError when getting queue ARN: {error_code} - {error_message}")
             return None
 
     def get_queue_url(self):
