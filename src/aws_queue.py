@@ -24,7 +24,6 @@ class Queue:
     def initialize_queue(self, topic_arn, dead_letter_queue_arn):
         try:
             self.create_queue()
-            time.sleep(1)  # Wait for the queue to be created
             self.subscribe_queue_to_topic(topic_arn=topic_arn)
             self.add_subscription_policy_to_queue(topic_arn=topic_arn)
             self.add_redrive_policy_to_queue(
@@ -37,6 +36,7 @@ class Queue:
     def create_queue(self):
         try:
             response = self.sqs_client.create_queue(QueueName=self.queue_name)
+            time.sleep(2)  # Wait for the queue to be created
             queue_url = response["QueueUrl"]
             self.logger.info(f"Created queue: {self.queue_name}, URL: {queue_url}")
             return queue_url
@@ -138,18 +138,17 @@ class Queue:
 
     def get_queue_arn(self):
         try:
-            response = self.sqs_client.list_queues(QueueNamePrefix=self.queue_name)
-            queue = response.get("QueueUrls", [])[0]
-            queue_arn = self.sqs_client.get_queue_attributes(
+            queue = self.get_queue_url()
+            response = self.sqs_client.get_queue_attributes(
                 QueueUrl=queue, AttributeNames=["QueueArn"]
             )
-            queue_arn = queue_arn["Attributes"]["QueueArn"]
+            queue_arn = response["Attributes"]["QueueArn"]
             self.logger.info(
                 f"Queue '{self.queue_name}' found. URL: {queue}, ARN: {queue_arn}"
             )
             return queue_arn
-        except ClientError as e:
-            self.logger.error(f"Error retrieving queue URL: {e}")
+        except Exception as e:
+            self.logger.error(f"Error getting queue ARN: {e}")
             return None
 
     def get_queue_url(self):
