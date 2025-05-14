@@ -1,4 +1,3 @@
-import datetime
 import random
 import threading
 import time
@@ -7,8 +6,8 @@ from config import (
     AWS_ARN_ROLE_CONSUMER,
     POSTGRES_URI,
 )
-from scripts.postgres import PostgresClient
 from setup import initialize_aws_setup
+from test_message import TestMessage
 from utils import (
     receive_message_from_queue,
     send_message_to_topic,
@@ -18,31 +17,6 @@ NUM_MESSAGES = 20
 session_name = "test_session"
 topic_name = "test_topic"
 queue_name = "test_queue"
-
-
-class TestMessage(PostgresClient):
-    def __init__(self, db_uri):
-        super().__init__(db_uri=db_uri)
-        self.schema_name = "schema_name"
-        self.table_name = "table_name"
-        self.columns = {
-            "id": "VARCHAR PRIMARY KEY",
-            "created_at": "TIMESTAMP",
-            "message": "VARCHAR",
-        }
-
-    def handle_message(self, message_body):
-        """
-        Handle the message received from SQS.
-        """
-        data = [
-            (
-                message_body.get("MessageId"),
-                datetime.datetime.now().isoformat(),
-                message_body.get("Message"),
-            )
-        ]
-        return data
 
 
 def test_listen_sqs() -> None:
