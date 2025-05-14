@@ -3,7 +3,7 @@ import datetime
 from scripts.postgres import PostgresClient
 
 
-class TestMessage(PostgresClient):
+class SimpleMessage(PostgresClient):
     def __init__(self, db_uri):
         super().__init__(db_uri=db_uri)
         self.schema_name = "schema_name"

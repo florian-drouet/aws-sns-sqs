@@ -7,7 +7,7 @@ from config import (
     POSTGRES_URI,
 )
 from setup import initialize_aws_setup
-from test_message import TestMessage
+from simple_message import SimpleMessage
 from utils import (
     receive_message_from_queue,
     send_message_to_topic,
@@ -27,7 +27,7 @@ def test_listen_sqs() -> None:
         queue_name=queue_name,
     )
 
-    postgres_client = TestMessage(db_uri=POSTGRES_URI)
+    postgres_client = SimpleMessage(db_uri=POSTGRES_URI)
     postgres_client.delete_table(
         schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
     )  # Clean up the table if it exists
