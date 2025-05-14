@@ -12,8 +12,9 @@ class Message(PostgresClient):
         self.primary_key = "consultation_id"
         self.columns = {
             "consultation_id": "VARCHAR PRIMARY KEY",
-            "inserted_at": "TIMESTAMP",
-            "estimated_start_date": "TIMESTAMP",
+            "inserted_utc_at": "TIMESTAMP",
+            "estimated_start_utc_at": "TIMESTAMP",
+            "closed_utc_at": "TIMESTAMP",
         }
 
     def handle_message(self, message_body) -> None:
@@ -27,6 +28,7 @@ class Message(PostgresClient):
                 dict_message.get("id"),
                 datetime.datetime.now().isoformat(),
                 dict_message.get("estimatedStartDate"),
+                dict_message.get("closedAt"),
             )
         ]
         return data

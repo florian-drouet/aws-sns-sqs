@@ -34,3 +34,7 @@ add some rights :
 - SQS:ListQueue
 - SQS:GetTopicAttributes
 - SNS:CreateTopic
+
+
+docker build --no-cache --build-arg GITHUB_TOKEN_ARG="$GITHUB_TOKEN" -t consumer-live --file Dockerfile .
+docker run -p 8000:8000 --rm=false --env-file .env consumer-live

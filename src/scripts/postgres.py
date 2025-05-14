@@ -26,7 +26,7 @@ class PostgresClient:
             logger.error(f"Error connecting to the database: {e}")
             raise
 
-    def execute_query(self, query: str):
+    def execute_query(self, query: str) -> list:
         with self.connection.cursor() as cursor:
             cursor.execute(query)
             try:
@@ -189,17 +189,26 @@ class PostgresClient:
             logger.error(f"Error inserting data into '{schema_name}.{table_name}': {e}")
             raise
 
-    def fetch_data(self, schema_name="public", table_name="users") -> None:
+    def delete_data(
+        self,
+        schema_name="public",
+        table_name="users",
+        delete_column: str = "inserted_at",
+    ) -> None:
         """
-        Fetch data from the PostgreSQL table.
+        Delete data from the PostgreSQL table.
         """
         try:
-            fetch_sql = f"SELECT * FROM {schema_name}.{table_name};"
-            self.cursor.execute(fetch_sql)
-            rows = self.cursor.fetchall()
-            logger.info(f"Fetched {len(rows)} rows from '{table_name}'.")
+            delete_sql = f"""DELETE FROM {schema_name}.{table_name}
+            WHERE {delete_column} < NOW() - INTERVAL '14 days';
+            """
+            self.cursor.execute(delete_sql)
+            self.connection.commit()
+            logger.info(
+                f"Deleted rows from '{schema_name}.{table_name}' older than 14 days."
+            )
         except Exception as e:
-            logger.error(f"Error fetching data from '{table_name}': {e}")
+            logger.error(f"Error deleting data from '{schema_name}.{table_name}': {e}")
             raise
 
     def delete_table(self, schema_name="public", table_name="users") -> None:
@@ -213,19 +222,6 @@ class PostgresClient:
             logger.info(f"Table '{schema_name}.{table_name}' deleted successfully.")
         except Exception as e:
             logger.error(f"Error deleting table '{schema_name}.{table_name}': {e}")
-            raise
-
-    def truncate_table(self, schema_name="public", table_name="users") -> None:
-        """
-        Truncate the PostgreSQL table.
-        """
-        try:
-            truncate_sql = f"TRUNCATE TABLE {schema_name}.{table_name};"
-            self.cursor.execute(truncate_sql)
-            self.connection.commit()
-            logger.info(f"Table '{schema_name}.{table_name}' truncated successfully.")
-        except Exception as e:
-            logger.error(f"Error truncating table '{schema_name}.{table_name}': {e}")
             raise
 
     def count_elements(self, schema_name="public", table_name="users"):
