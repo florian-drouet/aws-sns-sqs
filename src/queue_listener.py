@@ -61,6 +61,7 @@ def consumer() -> None:
         try:
             receive_message_from_queue(
                 postgres_client=postgres_client,
+                schema_name=postgres_client.schema_name,
                 table_name=postgres_client.table_name,
                 sqs_client=queue.sqs_client,
                 queue_url=queue_url,

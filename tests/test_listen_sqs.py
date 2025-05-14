@@ -1,3 +1,4 @@
+import datetime
 import random
 import threading
 import time
@@ -6,7 +7,7 @@ from config import (
     AWS_ARN_ROLE_CONSUMER,
     POSTGRES_URI,
 )
-from scripts.message import Message
+from scripts.postgres import PostgresClient
 from setup import initialize_aws_setup
 from utils import (
     receive_message_from_queue,
@@ -19,6 +20,31 @@ topic_name = "test_topic"
 queue_name = "test_queue"
 
 
+class TestMessage(PostgresClient):
+    def __init__(self, db_uri):
+        super().__init__(db_uri=db_uri)
+        self.schema_name = "schema_name"
+        self.table_name = "table_name"
+        self.columns = {
+            "id": "VARCHAR PRIMARY KEY",
+            "created_at": "TIMESTAMP",
+            "message": "VARCHAR",
+        }
+
+    def handle_message(self, message_body):
+        """
+        Handle the message received from SQS.
+        """
+        data = [
+            (
+                message_body.get("MessageId"),
+                datetime.datetime.now().isoformat(),
+                message_body.get("Message"),
+            )
+        ]
+        return data
+
+
 def test_listen_sqs() -> None:
     sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(
         role=AWS_ARN_ROLE_CONSUMER,
@@ -27,7 +53,7 @@ def test_listen_sqs() -> None:
         queue_name=queue_name,
     )
 
-    postgres_client = Message(db_uri=POSTGRES_URI)
+    postgres_client = TestMessage(db_uri=POSTGRES_URI)
     postgres_client.delete_table(
         schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
     )  # Clean up the table if it exists
@@ -55,6 +81,7 @@ def test_listen_sqs() -> None:
         while received < NUM_MESSAGES and attempts < 50:
             messages = receive_message_from_queue(
                 postgres_client=postgres_client,
+                schema_name=postgres_client.schema_name,
                 table_name=postgres_client.table_name,
                 sqs_client=sqs_client,
                 queue_url=queue_url,
@@ -78,6 +105,6 @@ def test_listen_sqs() -> None:
     nb_elements = postgres_client.count_elements(
         schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
     )
-    assert nb_elements == 20, (
-        f"Expected 20 elements in the PostgreSQL table, but found {nb_elements}."
+    assert nb_elements == NUM_MESSAGES, (
+        f"Expected {NUM_MESSAGES} elements in the PostgreSQL table, but found {nb_elements}."
     )
