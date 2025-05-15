@@ -1,8 +1,7 @@
 import pytest
 
+from src.config import POSTGRES_URI
 from src.scripts.postgres import PostgresClient
-
-DB_URI = "postgresql://admin:password@localhost:5432/mydatabase"
 
 
 @pytest.fixture(scope="function")
@@ -11,7 +10,7 @@ def postgres_client():
     Provides a real PostgresClient using the local PostgreSQL DB,
     and ensures proper teardown.
     """
-    client = PostgresClient(db_uri=DB_URI)
+    client = PostgresClient(db_uri=POSTGRES_URI)
     yield client
     client.close()
 

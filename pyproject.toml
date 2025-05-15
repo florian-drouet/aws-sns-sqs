@@ -7,6 +7,8 @@ requires-python = ">=3.9, <3.10"
 dependencies = [
     "boto3>=1.37.30",
     "dotenv>=0.9.9",
+    "flask>=3.1.1",
+    "gunicorn>=23.0.0",
     "loguru>=0.7.3",
     "psycopg2>=2.9.10",
     "pytest>=8.3.5",

@@ -6,8 +6,8 @@ from config import (
     AWS_ARN_ROLE_CONSUMER,
     POSTGRES_URI,
 )
-from scripts.message import Message
 from setup import initialize_aws_setup
+from simple_message import SimpleMessage
 from utils import (
     receive_message_from_queue,
     send_message_to_topic,
@@ -27,7 +27,7 @@ def test_listen_sqs() -> None:
         queue_name=queue_name,
     )
 
-    postgres_client = Message(db_uri=POSTGRES_URI)
+    postgres_client = SimpleMessage(db_uri=POSTGRES_URI)
     postgres_client.delete_table(
         schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
     )  # Clean up the table if it exists
@@ -55,6 +55,7 @@ def test_listen_sqs() -> None:
         while received < NUM_MESSAGES and attempts < 50:
             messages = receive_message_from_queue(
                 postgres_client=postgres_client,
+                schema_name=postgres_client.schema_name,
                 table_name=postgres_client.table_name,
                 sqs_client=sqs_client,
                 queue_url=queue_url,
@@ -78,6 +79,6 @@ def test_listen_sqs() -> None:
     nb_elements = postgres_client.count_elements(
         schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
     )
-    assert nb_elements == 20, (
-        f"Expected 20 elements in the PostgreSQL table, but found {nb_elements}."
+    assert nb_elements == NUM_MESSAGES, (
+        f"Expected {NUM_MESSAGES} elements in the PostgreSQL table, but found {nb_elements}."
     )

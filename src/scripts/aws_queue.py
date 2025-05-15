@@ -150,7 +150,9 @@ class Queue:
         except ClientError as e:
             error_code = e.response["Error"]["Code"]
             error_message = e.response["Error"]["Message"]
-            self.logger.error(f"ClientError when getting queue ARN: {error_code} - {error_message}")
+            self.logger.error(
+                f"ClientError when getting queue ARN: {error_code} - {error_message}"
+            )
             return None
 
     def get_queue_url(self):

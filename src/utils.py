@@ -26,7 +26,7 @@ def send_message_to_topic(
 
 
 def receive_message_from_queue(
-    postgres_client, table_name, sqs_client, queue_url, columns
+    postgres_client, schema_name, table_name, sqs_client, queue_url, columns
 ):
     """
     Receive messages from an SQS queue.
@@ -50,7 +50,11 @@ def receive_message_from_queue(
             logger.info(f"Received message: {message_body.get('MessageId')}")
             data = postgres_client.handle_message(message_body)
             postgres_client.insert_data(
-                table_name=table_name, data=data, columns=columns, strategy="skip"
+                schema_name=schema_name,
+                table_name=table_name,
+                data=data,
+                columns=columns,
+                strategy="skip",
             )
             delete_message_from_queue(sqs_client, queue_url, message)
         return messages
