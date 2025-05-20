@@ -10,7 +10,6 @@ load_dotenv(override=DEBUG)  # take environment variables from .env.
 AWS_ARN_ROLE_CONSUMER = os.getenv("AWS_ARN_ROLE_CONSUMER", None)
 SESSION_NAME = os.getenv("SESSION_NAME")
 TOPIC_NAME = os.getenv("TOPIC_NAME")
-TOPIC_ARN = os.getenv("TOPIC_ARN")
 QUEUE_NAME = os.getenv("QUEUE_NAME")
 
 # ENV & DEBUG
