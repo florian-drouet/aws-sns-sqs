@@ -88,7 +88,6 @@ class AWSConnection(metaclass=AWSConnectionMeta):
         Refresh tokens by calling assume_role again
         Documentation: https://dev.to/li_chastina/auto-refresh-aws-tokens-using-iam-role-and-boto3-2cjf
         """
-
         sts_client = boto3.client("sts", region_name=self.region)
 
         params = {
@@ -96,8 +95,11 @@ class AWSConnection(metaclass=AWSConnectionMeta):
             "RoleSessionName": self.session_name,
             "DurationSeconds": self.assume_role_max_duration,
         }
-
-        response = sts_client.assume_role(**params).get("Credentials")
+        try:
+            response = sts_client.assume_role(**params).get("Credentials")
+        except Exception as e:
+            logger.error(f"Error assuming role: {e}")
+            raise e
 
         credentials = {
             "access_key": response.get("AccessKeyId"),
