@@ -34,7 +34,7 @@ def test_create_table(postgres_client):
     columns = {"id": "SERIAL PRIMARY KEY", "name": "VARCHAR(255)"}
     schema_name = "test_schema"
     table_name = "test_table"
-    postgres_client.create_table(
+    postgres_client.get_or_create_table(
         schema_name=schema_name, table_name=table_name, columns=columns
     )
     result = postgres_client.table_exists(
@@ -56,7 +56,7 @@ def test_insert_data(postgres_client, strategy, data, expected):
     schema_name = "test_schema"
     table_name = "test_table"
     postgres_client.create_schema(schema_name=schema_name)
-    postgres_client.create_table(
+    postgres_client.get_or_create_table(
         schema_name=schema_name, table_name=table_name, columns=columns
     )
 

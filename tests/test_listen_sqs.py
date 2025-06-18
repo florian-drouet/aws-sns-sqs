@@ -31,7 +31,7 @@ def test_listen_sqs() -> None:
     postgres_client.delete_table(
         schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
     )  # Clean up the table if it exists
-    postgres_client.create_table(
+    postgres_client.get_or_create_table(
         schema_name=postgres_client.schema_name,
         table_name=postgres_client.table_name,
         columns=postgres_client.columns,
