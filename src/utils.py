@@ -2,7 +2,7 @@ import json
 
 from botocore.exceptions import ClientError
 
-from config import MAX_NUMBER_OF_MESSAGES, VISIBILTY_TIMEOUT, WAIT_TIME_SECONDS, logger
+from config import MAX_NUMBER_OF_MESSAGES, VISIBILITY_TIMEOUT, WAIT_TIME_SECONDS, logger
 
 
 def send_message_to_topic(
@@ -36,7 +36,7 @@ def receive_message_from_queue(
             QueueUrl=queue_url,
             MaxNumberOfMessages=MAX_NUMBER_OF_MESSAGES,
             WaitTimeSeconds=WAIT_TIME_SECONDS,  # Long polling
-            VisibilityTimeout=VISIBILTY_TIMEOUT,
+            VisibilityTimeout=VISIBILITY_TIMEOUT,
             MessageAttributeNames=["All"],  # Retrieve all message attributes
         )
 

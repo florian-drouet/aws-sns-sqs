@@ -29,7 +29,7 @@ def initialize_consumer(
     db_uri: str = POSTGRES_URI,
 ):
     """
-    Initialize the producer by setting up the AWS connection and PostgreSQL table.
+    Initialize the consumer by setting up the AWS connection and PostgreSQL table.
     """
     postgres_client = initialize_postgres_client(
         postgres=postgres,
