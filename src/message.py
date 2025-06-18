@@ -1,6 +1,7 @@
 import datetime
 import json
 
+from config import DIRECTORY_PATH
 from scripts.postgres import PostgresClient
 
 
@@ -10,6 +11,7 @@ class Message(PostgresClient):
         self.schema_name = "public"
         self.table_name = "messages"
         self.primary_key = "consultation_id"
+        self.delete_column = "inserted_utc_at"
         self.columns = {
             "consultation_id": "VARCHAR PRIMARY KEY",
             "inserted_utc_at": "TIMESTAMP",
@@ -32,3 +34,8 @@ class Message(PostgresClient):
             )
         ]
         return data
+
+    def aggregate(self):
+        with open(f"{DIRECTORY_PATH}/queries/aggregate_message.sql", "r") as file:
+            query = file.read()
+        return self.execute_query(query=query)

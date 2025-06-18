@@ -97,7 +97,7 @@ class PostgresClient:
             logger.error(f"Error creating schema '{schema_name}': {e}")
             raise
 
-    def create_table(
+    def get_or_create_table(
         self, schema_name="public", table_name="users", columns=None
     ) -> None:
         """
