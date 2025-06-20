@@ -1,10 +1,21 @@
-from config import logger
+from config import (
+    AWS_ARN_ROLE_CONSUMER,
+    POSTGRES_URI,
+    QUEUE_NAME,
+    SESSION_NAME,
+    TOPIC_NAME,
+    logger,
+)
 from scripts.aws_queue import Queue
 from scripts.aws_topic import Topic
+from scripts.postgres import PostgresClient
 
 
 def initialize_aws_setup(
-    role: str, session_name: str, topic_name: str, queue_name: str
+    role: str = AWS_ARN_ROLE_CONSUMER,
+    session_name: str = SESSION_NAME,
+    topic_name: str = TOPIC_NAME,
+    queue_name: str = QUEUE_NAME,
 ):
     """
     Initialize the AWS setup by creating an SNS topic a SQS queue and a DLQ queue
@@ -45,3 +56,16 @@ def initialize_aws_setup(
         )
         queue_url = queue.get_queue_url()
     return topic.sns_client, queue.sqs_client, topic_arn, queue_url
+
+
+def initialize_postgres_client(postgres: PostgresClient, db_uri: str = POSTGRES_URI):
+    """
+    Initialize the PostgreSQL backend.
+    """
+    postgres_client = postgres(db_uri=db_uri)
+    postgres_client.get_or_create_table(
+        schema_name=postgres_client.schema_name,
+        table_name=postgres_client.table_name,
+        columns=postgres_client.columns,
+    )
+    return postgres_client

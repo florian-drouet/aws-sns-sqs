@@ -1,3 +1,4 @@
+import os
 import time
 
 from config import (
@@ -9,11 +10,13 @@ from config import (
     TOPIC_NAME,
     logger,
 )
-from message import Message
 from scripts.aws_queue import Queue
+from scripts.postgres import PostgresClient
 from setup import (
     initialize_aws_setup,
+    initialize_postgres_client,
 )
+from simple_message import SimpleMessage
 from utils import receive_message_from_queue
 
 
@@ -22,19 +25,23 @@ def initialize_consumer(
     session_name: str = SESSION_NAME,
     topic_name: str = TOPIC_NAME,
     queue_name: str = QUEUE_NAME,
+    postgres: PostgresClient = SimpleMessage,
+    db_uri: str = POSTGRES_URI,
 ):
     """
     Initialize the consumer by setting up the AWS connection and PostgreSQL table.
     """
-    postgres_client = Message(db_uri=POSTGRES_URI)
-    postgres_client.delete_table(
-        schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
-    )  # Clean up the table if it exists
-    postgres_client.create_table(
-        schema_name=postgres_client.schema_name,
-        table_name=postgres_client.table_name,
-        columns=postgres_client.columns,
+    postgres_client = initialize_postgres_client(
+        postgres=postgres,
+        db_uri=db_uri,
     )
+
+    if os.getenv("LOCALSTACK") == "1":
+        postgres_client.delete_data(
+            schema_name=postgres_client.schema_name,
+            table_name=postgres_client.table_name,
+            delete_column=postgres_client.delete_column,
+        )
 
     _, sqs_client, _, queue_url = initialize_aws_setup(
         role=role,
@@ -45,16 +52,11 @@ def initialize_consumer(
     return postgres_client, sqs_client, queue_url
 
 
-def consumer() -> None:
-    queue = Queue(
-        role=AWS_ARN_ROLE_CONSUMER,
-        session_name=SESSION_NAME,
-        queue_name=QUEUE_NAME,
-        logger=logger,
-    )
-    queue_url = queue.get_queue_url()
-    postgres_client = Message(db_uri=POSTGRES_URI)
-
+def consumer(
+    postgres_client: PostgresClient,
+    sqs_client: Queue,
+    queue_url: str = None,
+) -> None:
     is_consumer_running = True
 
     while is_consumer_running:
@@ -63,7 +65,7 @@ def consumer() -> None:
                 postgres_client=postgres_client,
                 schema_name=postgres_client.schema_name,
                 table_name=postgres_client.table_name,
-                sqs_client=queue.sqs_client,
+                sqs_client=sqs_client,
                 queue_url=queue_url,
                 columns=postgres_client.columns,
             )
@@ -75,5 +77,7 @@ def consumer() -> None:
 
 
 if __name__ == "__main__":
-    initialize_consumer()
-    consumer()
+    postgres_client, sqs_client, queue_url = initialize_consumer(postgres=SimpleMessage)
+    consumer(
+        postgres_client=postgres_client, sqs_client=sqs_client, queue_url=queue_url
+    )

@@ -2,7 +2,7 @@ import json
 
 from botocore.exceptions import ClientError
 
-from config import logger
+from config import MAX_NUMBER_OF_MESSAGES, VISIBILITY_TIMEOUT, WAIT_TIME_SECONDS, logger
 
 
 def send_message_to_topic(
@@ -34,9 +34,9 @@ def receive_message_from_queue(
     try:
         response = sqs_client.receive_message(
             QueueUrl=queue_url,
-            MaxNumberOfMessages=10,
-            WaitTimeSeconds=20,  # Long polling
-            VisibilityTimeout=30,  # Message visibility timeout
+            MaxNumberOfMessages=MAX_NUMBER_OF_MESSAGES,
+            WaitTimeSeconds=WAIT_TIME_SECONDS,  # Long polling
+            VisibilityTimeout=VISIBILITY_TIMEOUT,
             MessageAttributeNames=["All"],  # Retrieve all message attributes
         )
 
@@ -45,18 +45,21 @@ def receive_message_from_queue(
             logger.info("No messages received.")
             return None
 
+        data_batch = []
         for message in messages:
             message_body = json.loads(message["Body"])
             logger.info(f"Received message: {message_body.get('MessageId')}")
             data = postgres_client.handle_message(message_body)
-            postgres_client.insert_data(
-                schema_name=schema_name,
-                table_name=table_name,
-                data=data,
-                columns=columns,
-                strategy="skip",
-            )
-            delete_message_from_queue(sqs_client, queue_url, message)
+            data_batch = [*data_batch, *data]
+
+        postgres_client.insert_data(
+            schema_name=schema_name,
+            table_name=table_name,
+            data=data_batch,
+            columns=columns,
+            strategy="skip",
+        )
+        delete_batch_messages_from_queue(sqs_client, queue_url, messages)
         return messages
     except ClientError as e:
         logger.error(f"Error receiving message: {e}")
@@ -79,4 +82,27 @@ def delete_message_from_queue(sqs_client, queue_url, message):
         return response
     except ClientError as e:
         logger.error(f"Error deleting message: {e}")
+        return None
+
+
+def delete_batch_messages_from_queue(sqs_client, queue_url, messages):
+    """
+    Delete a batch of messages from an SQS queue.
+    """
+    try:
+        entries = [
+            {"Id": str(i), "ReceiptHandle": msg["ReceiptHandle"]}
+            for i, msg in enumerate(messages)
+        ]
+        response = sqs_client.delete_message_batch(QueueUrl=queue_url, Entries=entries)
+        nb_successful = len(response.get("Successful", []))
+        nb_failed = len(response.get("Failed", []))
+
+        if nb_failed > 0:
+            logger.error(f"Failed to delete some messages: {response.get('Failed')}")
+        else:
+            logger.info(f"{nb_successful} Batch messages deleted successfully.")
+        return response
+    except ClientError as e:
+        logger.error(f"Error deleting batch messages: {e}")
         return None

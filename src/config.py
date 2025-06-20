@@ -6,18 +6,30 @@ from loguru import logger
 DEBUG = int(os.getenv("DEBUG"))
 load_dotenv(override=DEBUG)  # take environment variables from .env.
 
-# AWS Role
+# PATH #
+DIRECTORY_PATH = os.path.dirname(os.path.realpath(__file__))
+
+# CONSUMER #
+CONSUMER_NAME = os.getenv("CONSUMER_NAME", "simple_message")
+
+# AWS SETTINGS #
 AWS_ARN_ROLE_CONSUMER = os.getenv("AWS_ARN_ROLE_CONSUMER", None)
 SESSION_NAME = os.getenv("SESSION_NAME")
 TOPIC_NAME = os.getenv("TOPIC_NAME")
 TOPIC_ARN = os.getenv("TOPIC_ARN")
 QUEUE_NAME = os.getenv("QUEUE_NAME")
 
-# ENV & DEBUG
+# AWS QUEUE SETTINGS #
+POLLING_INTERVAL = 1
+MAX_NUMBER_OF_MESSAGES = 10
+VISIBILITY_TIMEOUT = 30
+WAIT_TIME_SECONDS = 20
+
+# ENV & DEBUG #
 ENV = os.getenv("ENV")
 DEBUG = int(os.getenv("DEBUG"))
 
-# Configure loguru loggers
+# LOGGER SETTINGS #
 logger.add(
     "logs/aws_connection.log",
     rotation="10 MB",
@@ -26,8 +38,5 @@ logger.add(
     enqueue=True,
 )
 
-# Global Postgres connection string
+# POSTGRES SETTINGS #
 POSTGRES_URI = os.getenv("POSTGRES_URI")
-
-# Global SQS polling interval
-POLLING_INTERVAL = 1  # seconds

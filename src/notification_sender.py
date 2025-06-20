@@ -9,8 +9,12 @@ from config import (
     TOPIC_NAME,
     logger,
 )
-from setup import initialize_aws_setup
-from src.message import Message
+from scripts.postgres import PostgresClient
+from setup import (
+    initialize_aws_setup,
+    initialize_postgres_client,
+)
+from simple_message import SimpleMessage
 from utils import send_message_to_topic
 
 
@@ -19,18 +23,15 @@ def initialize_producer(
     session_name: str = SESSION_NAME,
     topic_name: str = TOPIC_NAME,
     queue_name: str = QUEUE_NAME,
+    postgres: PostgresClient = SimpleMessage,
+    db_uri: str = POSTGRES_URI,
 ):
     """
-    Initialize the consumer by setting up the AWS connection and PostgreSQL table.
+    Initialize the producer by setting up the AWS connection and PostgreSQL table.
     """
-    postgres_client = Message(db_uri=POSTGRES_URI)
-    postgres_client.delete_table(
-        schema_name=postgres_client.schema_name, table_name=postgres_client.table_name
-    )  # Clean up the table if it exists
-    postgres_client.create_table(
-        schema_name=postgres_client.schema_name,
-        table_name=postgres_client.table_name,
-        columns=postgres_client.columns,
+    postgres_client = initialize_postgres_client(
+        postgres=postgres,
+        db_uri=db_uri,
     )
 
     sns_client, _, topic_arn, _ = initialize_aws_setup(
@@ -45,7 +46,7 @@ def initialize_producer(
 def producer(sns_client, topic_arn) -> None:
     try:
         counter = 1
-        while counter < 20:
+        while counter < 100:
             message_body = f"Test message number: {counter}"
             subject = "Test Subject"
             message_attributes = {
@@ -55,12 +56,14 @@ def producer(sns_client, topic_arn) -> None:
                 sns_client, topic_arn, message_body, subject, message_attributes
             )
             counter += 1
-            # Sleep for a while to avoid sending too many messages in a short time
-            time.sleep(random.randint(1, 20))
+
+            if counter % 20 == 0:
+                logger.info(f"Sent {counter} messages, sleeping for a while...")
+                time.sleep(random.randint(1, 20))
     except Exception as e:
         logger.error(f"Error sending message to topic: {e}")
 
 
 if __name__ == "__main__":
-    postgres_client, sns_client, topic_arn = initialize_producer()
+    _, sns_client, topic_arn = initialize_producer(postgres=SimpleMessage)
     producer(sns_client=sns_client, topic_arn=topic_arn)
