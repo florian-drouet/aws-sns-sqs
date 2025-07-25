@@ -62,6 +62,9 @@ def receive_message_from_queue(
             source_topic = message_body.get("TopicArn")
             topic_arn_short = source_topic.split(":")[-1]
             consumer_class = dict_consumers.get(topic_arn_short)
+            if consumer_class is None:
+                logger.error(f"Unrecognized topic: {topic_arn_short}. Skipping message.")
+                continue
             if not dict_data.get(consumer_class):
                 dict_data[consumer_class] = []
 
