@@ -14,18 +14,22 @@ from utils import (
 )
 
 NUM_MESSAGES = 20
+DICT_CONSUMERS = {
+    "test_topic": SimpleMessage,
+}
 session_name = "test_session"
-topic_name = "test_topic"
+list_topic_name = ["test_topic"]
 queue_name = "test_queue"
 
 
 def test_listen_sqs() -> None:
-    sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(
+    sns_client, sqs_client, list_topic_arn, queue_url = initialize_aws_setup(
         role=AWS_ARN_ROLE_CONSUMER,
         session_name=session_name,
-        topic_name=topic_name,
+        list_topic_name=list_topic_name,
         queue_name=queue_name,
     )
+    topic_arn = list_topic_arn[0]  # Assuming single topic for this test
 
     postgres_client = SimpleMessage(db_uri=POSTGRES_URI)
     postgres_client.delete_table(
@@ -54,12 +58,10 @@ def test_listen_sqs() -> None:
 
         while received < NUM_MESSAGES and attempts < 50:
             messages = receive_message_from_queue(
-                postgres_client=postgres_client,
-                schema_name=postgres_client.schema_name,
-                table_name=postgres_client.table_name,
                 sqs_client=sqs_client,
                 queue_url=queue_url,
-                columns=postgres_client.columns,
+                db_uri=POSTGRES_URI,
+                dict_consumers=DICT_CONSUMERS,
             )
             for message in messages:
                 received += 1

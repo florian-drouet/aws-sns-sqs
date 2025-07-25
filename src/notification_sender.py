@@ -6,9 +6,9 @@ from config import (
     POSTGRES_URI,
     QUEUE_NAME,
     SESSION_NAME,
-    TOPIC_NAME,
     logger,
 )
+from config_producer import LIST_TOPIC_NAME
 from scripts.postgres import PostgresClient
 from setup import (
     initialize_aws_setup,
@@ -21,7 +21,7 @@ from utils import send_message_to_topic
 def initialize_producer(
     role: str = AWS_ARN_ROLE_CONSUMER,
     session_name: str = SESSION_NAME,
-    topic_name: str = TOPIC_NAME,
+    list_topic_name: list = LIST_TOPIC_NAME,
     queue_name: str = QUEUE_NAME,
     postgres: PostgresClient = SimpleMessage,
     db_uri: str = POSTGRES_URI,
@@ -34,19 +34,23 @@ def initialize_producer(
         db_uri=db_uri,
     )
 
-    sns_client, _, topic_arn, _ = initialize_aws_setup(
+    sns_client, _, list_topic_arn, _ = initialize_aws_setup(
         role=role,
         session_name=session_name,
-        topic_name=topic_name,
+        list_topic_name=list_topic_name,
         queue_name=queue_name,
     )
-    return postgres_client, sns_client, topic_arn
+    return postgres_client, sns_client, list_topic_arn
 
 
-def producer(sns_client, topic_arn) -> None:
+def producer(sns_client, list_topic_arn) -> None:
     try:
+        if not list_topic_arn:
+            logger.error("The list of topic ARNs is empty. Exiting producer.")
+            return
         counter = 1
         while counter < 100:
+            topic_arn = random.choice(list_topic_arn)
             message_body = f"Test message number: {counter}"
             subject = "Test Subject"
             message_attributes = {
@@ -65,5 +69,5 @@ def producer(sns_client, topic_arn) -> None:
 
 
 if __name__ == "__main__":
-    _, sns_client, topic_arn = initialize_producer(postgres=SimpleMessage)
-    producer(sns_client=sns_client, topic_arn=topic_arn)
+    _, sns_client, list_topic_arn = initialize_producer(postgres=SimpleMessage)
+    producer(sns_client=sns_client, list_topic_arn=list_topic_arn)

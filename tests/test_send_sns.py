@@ -5,7 +5,7 @@ from setup import initialize_aws_setup
 from utils import send_message_to_topic
 
 session_name = "test_session_producer"
-topic_name = "test_topic_producer"
+list_topic_name = ["test_topic_producer"]
 queue_name = "test_queue_producer"
 
 
@@ -26,12 +26,14 @@ queue_name = "test_queue_producer"
     ],
 )
 def test_sns_response(message_body, subject, message_attributes) -> None:
-    sns_client, sqs_client, topic_arn, queue_url = initialize_aws_setup(
+    sns_client, _, list_topic_arn, _ = initialize_aws_setup(
         role=AWS_ARN_ROLE_CONSUMER,
         session_name=session_name,
-        topic_name=topic_name,
+        list_topic_name=list_topic_name,
         queue_name=queue_name,
     )
+
+    topic_arn = list_topic_arn[0]  # Assuming single topic for this test
 
     response = send_message_to_topic(
         sns_client=sns_client,

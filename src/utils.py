@@ -2,7 +2,14 @@ import json
 
 from botocore.exceptions import ClientError
 
-from config import MAX_NUMBER_OF_MESSAGES, VISIBILITY_TIMEOUT, WAIT_TIME_SECONDS, logger
+from config import (
+    MAX_NUMBER_OF_MESSAGES,
+    VISIBILITY_TIMEOUT,
+    WAIT_TIME_SECONDS,
+    logger,
+)
+from config_producer import DICT_CONSUMERS
+from setup import initialize_postgres_client
 
 
 def send_message_to_topic(
@@ -18,7 +25,9 @@ def send_message_to_topic(
             or {},  # If no attributes, use empty dict
         )
 
-        logger.info(f"Message sent to Topic. Message ID: {response['MessageId']}")
+        logger.info(
+            f"Message sent to Topic {topic_arn} | Message ID: {response['MessageId']}"
+        )
         return response
     except ClientError as e:
         logger.error(f"Error sending message: {e}")
@@ -26,7 +35,7 @@ def send_message_to_topic(
 
 
 def receive_message_from_queue(
-    postgres_client, schema_name, table_name, sqs_client, queue_url, columns
+    db_uri, sqs_client, queue_url, dict_consumers=DICT_CONSUMERS
 ):
     """
     Receive messages from an SQS queue.
@@ -45,20 +54,36 @@ def receive_message_from_queue(
             logger.info("No messages received.")
             return None
 
-        data_batch = []
+        # consume, process and store messages from each topic into a dict
+        dict_data = {}
         for message in messages:
             message_body = json.loads(message["Body"])
             logger.info(f"Received message: {message_body.get('MessageId')}")
-            data = postgres_client.handle_message(message_body)
-            data_batch = [*data_batch, *data]
+            source_topic = message_body.get("TopicArn")
+            topic_arn_short = source_topic.split(":")[-1]
+            consumer_class = dict_consumers.get(topic_arn_short)
+            if consumer_class is None:
+                logger.error(f"Unrecognized topic: {topic_arn_short}. Skipping message.")
+                continue
+            if not dict_data.get(consumer_class):
+                dict_data[consumer_class] = []
 
-        postgres_client.insert_data(
-            schema_name=schema_name,
-            table_name=table_name,
-            data=data_batch,
-            columns=columns,
-            strategy="skip",
-        )
+            data = consumer_class.handle_message(message_body)
+            dict_data[consumer_class] = [*dict_data[consumer_class], *data]
+
+        # batch insertion for faster performance
+        for consumer in dict_data.keys():
+            postgres_client = initialize_postgres_client(
+                postgres=consumer, db_uri=db_uri
+            )
+            postgres_client.insert_data(
+                schema_name=postgres_client.schema_name,
+                table_name=postgres_client.table_name,
+                data=dict_data.get(consumer),
+                columns=postgres_client.columns,
+                strategy="skip",
+            )
+
         delete_batch_messages_from_queue(sqs_client, queue_url, messages)
         return messages
     except ClientError as e:

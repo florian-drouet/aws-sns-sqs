@@ -3,19 +3,15 @@ import threading
 from flask import Flask
 
 from config import CONSUMER_NAME, POSTGRES_URI, logger
+from config_producer import DICT_CONSUMERS
 from queue_listener import consumer, initialize_consumer
-from src import dict_consumers
 
 
-def start_consumer(consumer_class):
-    logger.info(f"Starting consumer for {consumer_class.__name__}...")
+def start_consumer():
+    logger.info(f"Starting consumer for {CONSUMER_NAME}...")
     try:
-        postgres_client, sqs_client, queue_url = initialize_consumer(
-            postgres=consumer_class
-        )
-        consumer(
-            postgres_client=postgres_client, sqs_client=sqs_client, queue_url=queue_url
-        )
+        sqs_client, queue_url = initialize_consumer()
+        consumer(sqs_client=sqs_client, queue_url=queue_url)
         return {"status": "ok", "message": "Consumer initialized and running."}
     except Exception as e:
         return [{"server-status": f"error: {e}"}]
@@ -24,17 +20,23 @@ def start_consumer(consumer_class):
 def create_app():
     app = Flask(__name__)
 
-    consumer_class = dict_consumers.get(CONSUMER_NAME)
+    @app.route("/")
+    def index():
+        return [{"status": "ok", "message": f"Welcome to {CONSUMER_NAME} consumer."}]
 
     @app.route("/_healthz")
     def health_check():
         return [{"status": "ok", "message": "Flask app is running."}]
 
-    @app.route("/aggregate")
-    def aggregate():
+    @app.route("/aggregate/<consumer>")
+    def aggregate(consumer):
         try:
-            if hasattr(consumer_class, "aggregate"):
-                client = consumer_class(db_uri=POSTGRES_URI)
+            # Dynamically get the consumer class based on the argument
+            consumer_cls = DICT_CONSUMERS.get(consumer)
+            if consumer_cls is None:
+                return [{"server-status": "error: Invalid consumer name"}]
+            if hasattr(consumer_cls, "aggregate"):
+                client = consumer_cls(db_uri=POSTGRES_URI)
                 data = client.aggregate()
                 return data
             else:
@@ -42,23 +44,25 @@ def create_app():
         except Exception as e:
             return [{"server-status": f"error: {e}"}]
 
-    @app.route("/cleanup")
-    def cleanup():
+    @app.route("/cleanup/<consumer>")
+    def cleanup(consumer):
         try:
-            client = consumer_class(db_uri=POSTGRES_URI)
-            client.delete_data(
-                schema_name=client.schema_name,
-                table_name=client.table_name,
-                delete_column=client.delete_column,
-            )
+            consumer_cls = DICT_CONSUMERS.get(consumer)
+            if not consumer_cls:
+                return [{"server-status": "error: consumer not found"}]
+            if consumer_cls:
+                client = consumer_cls(db_uri=POSTGRES_URI)
+                client.delete_data(
+                    schema_name=client.schema_name,
+                    table_name=client.table_name,
+                    delete_column=client.delete_column,
+                )
             return [{"status": "ok", "message": "Data deleted successfully."}]
         except Exception as e:
             return [{"server-status": f"error: {e}"}]
 
     # Start the consumer thread when the app starts
-    consumer_thread = threading.Thread(
-        target=start_consumer, args=(consumer_class,), daemon=True
-    )
+    consumer_thread = threading.Thread(target=start_consumer, daemon=True)
     consumer_thread.start()
 
     return app
