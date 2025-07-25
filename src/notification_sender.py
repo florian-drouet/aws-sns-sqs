@@ -45,6 +45,9 @@ def initialize_producer(
 
 def producer(sns_client, list_topic_arn) -> None:
     try:
+        if not list_topic_arn:
+            logger.error("The list of topic ARNs is empty. Exiting producer.")
+            return
         counter = 1
         while counter < 100:
             topic_arn = random.choice(list_topic_arn)
