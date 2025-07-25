@@ -21,11 +21,12 @@ class Queue:
         self.sns_client = self.connection.get_client(service="sns")
         self.logger = logger
 
-    def initialize_queue(self, topic_arn, dead_letter_queue_arn):
+    def initialize_queue(self, list_topic_arn, dead_letter_queue_arn):
         try:
             self.create_queue()
-            self.subscribe_queue_to_topic(topic_arn=topic_arn)
-            self.add_subscription_policy_to_queue(topic_arn=topic_arn)
+            for topic_arn in list_topic_arn:
+                self.subscribe_queue_to_topic(topic_arn=topic_arn)
+                self.add_subscription_policy_to_queue(topic_arn=topic_arn)
             self.add_redrive_policy_to_queue(
                 dead_letter_queue_arn=dead_letter_queue_arn
             )

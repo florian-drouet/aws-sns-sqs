@@ -10,13 +10,11 @@ load_dotenv(override=DEBUG)  # take environment variables from .env.
 DIRECTORY_PATH = os.path.dirname(os.path.realpath(__file__))
 
 # CONSUMER #
-CONSUMER_NAME = os.getenv("CONSUMER_NAME", "simple_message")
+CONSUMER_NAME = "LiveTracking"
 
 # AWS SETTINGS #
 AWS_ARN_ROLE_CONSUMER = os.getenv("AWS_ARN_ROLE_CONSUMER", None)
 SESSION_NAME = os.getenv("SESSION_NAME")
-TOPIC_NAME = os.getenv("TOPIC_NAME")
-TOPIC_ARN = os.getenv("TOPIC_ARN")
 QUEUE_NAME = os.getenv("QUEUE_NAME")
 
 # AWS QUEUE SETTINGS #

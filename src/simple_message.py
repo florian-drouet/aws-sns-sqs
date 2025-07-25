@@ -16,7 +16,8 @@ class SimpleMessage(PostgresClient):
             "message": "VARCHAR",
         }
 
-    def handle_message(self, message_body):
+    @staticmethod
+    def handle_message(message_body):
         """
         Handle the message received from SQS.
         """

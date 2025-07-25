@@ -19,7 +19,8 @@ class Message(PostgresClient):
             "closed_utc_at": "TIMESTAMP",
         }
 
-    def handle_message(self, message_body) -> None:
+    @staticmethod
+    def handle_message(message_body) -> None:
         """
         Handle the message received from SQS.
         """
