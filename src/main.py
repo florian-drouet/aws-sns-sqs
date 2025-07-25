@@ -33,6 +33,8 @@ def create_app():
         try:
             # Dynamically get the consumer class based on the argument
             consumer_cls = DICT_CONSUMERS.get(consumer)
+            if consumer_cls is None:
+                return [{"server-status": "error: Invalid consumer name"}]
             if hasattr(consumer_cls, "aggregate"):
                 client = consumer_cls(db_uri=POSTGRES_URI)
                 data = client.aggregate()
