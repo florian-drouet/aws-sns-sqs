@@ -48,6 +48,8 @@ def create_app():
     def cleanup(consumer):
         try:
             consumer_cls = DICT_CONSUMERS.get(consumer)
+            if not consumer_cls:
+                return [{"server-status": "error: consumer not found"}]
             if consumer_cls:
                 client = consumer_cls(db_uri=POSTGRES_URI)
                 client.delete_data(
